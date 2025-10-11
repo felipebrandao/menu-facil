@@ -1,0 +1,71 @@
+<main class="py-8">
+  <!-- topo -->
+  <div
+    class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8"
+  >
+    <h1 class="text-3xl font-bold mb-4 md:mb-0">
+      Bem-vindo de volta, {{ user }}!
+    </h1>
+    <div class="flex items-center space-x-4 w-full md:w-auto">
+      <!-- busca -->
+      <div class="relative flex-grow">
+        <span
+          class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-subtext-light dark:text-subtext-dark"
+        >
+          search
+        </span>
+        <input
+          type="text"
+          placeholder="Pesquisar receitas, ingredientes..."
+          class="w-full bg-card-light dark:bg-card-dark border border-gray-200 dark:border-gray-600 rounded-lg py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text-light dark:text-text-dark"
+        />
+      </div>
+      <button
+        class="hidden md:flex items-center justify-center bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+      >
+        <span class="material-icons mr-2">add</span>
+        <span>Adicionar nova receita</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- receitas em destaque -->
+  <section class="mb-12">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-semibold">Receitas em Destaque</h2>
+      <a
+        routerLink="/receitas"
+        class="flex items-center space-x-2 bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-300 px-4 py-2 rounded-lg hover:bg-green-200 dark:hover:bg-green-700 transition-colors"
+      >
+        <span>Ver todas</span>
+        <span class="material-icons">arrow_forward</span>
+      </a>
+    </div>
+
+    <!-- cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <app-recipe-card
+        *ngFor="let recipe of featuredRecipes"
+        [title]="recipe.title"
+        [category]="recipe.category"
+        [image]="recipe.image"
+      ></app-recipe-card>
+    </div>
+  </section>
+
+  <!-- cards inferiores -->
+  <section>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <app-dashboard-info-card
+        *ngFor="let card of featureCards"
+        [tagText]="card.tagText"
+        [cardColor]="card.cardColor"
+        [title]="card.title"
+        [description]="card.description"
+        [linkUrl]="card.linkUrl"
+        [linkText]="card.linkText"
+        [linkIcon]="card.linkIcon"
+      ></app-dashboard-info-card>
+    </div>
+  </section>
+</main>
