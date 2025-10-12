@@ -1,0 +1,23 @@
+<div class="relative">
+  <input
+    [(ngModel)]="search"
+    (input)="onSearchChange()"
+    (focus)="onSearchChange()"
+    (blur)="onBlur()"
+    class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-sm focus:ring-primary focus:border-primary"
+    [placeholder]="placeholder"
+    autocomplete="off"
+  />
+  <ul *ngIf="showSuggestions && suggestions.length > 0"
+      class="absolute z-10 w-full mt-1 bg-white border rounded shadow max-h-48 overflow-auto">
+    <li *ngFor="let s of suggestions"
+        (mousedown)="select(s)"
+        class="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+      {{ s.name }}
+    </li>
+    <li (mousedown)="registerNew()"
+        class="px-4 py-2 font-semibold text-primary hover:bg-gray-100 cursor-pointer">
+      + Cadastrar novo ingrediente
+    </li>
+  </ul>
+</div>
