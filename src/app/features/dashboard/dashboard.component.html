@@ -1,4 +1,4 @@
-<main class="py-8">
+<main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <!-- topo -->
   <div
     class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8"
@@ -22,6 +22,7 @@
       </div>
       <button
         class="hidden md:flex items-center justify-center bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+        (click)="goToCreateRecipe()"
       >
         <span class="material-icons mr-2">add</span>
         <span>Adicionar nova receita</span>
@@ -36,26 +37,38 @@
       <a
         routerLink="/receitas"
         class="flex items-center space-x-2 bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-300 px-4 py-2 rounded-lg hover:bg-green-200 dark:hover:bg-green-700 transition-colors"
+        *ngIf="featuredRecipes?.length"
       >
         <span>Ver todas</span>
         <span class="material-icons">arrow_forward</span>
       </a>
     </div>
 
-    <!-- cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div *ngIf="featuredRecipes?.length; else noRecipes" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       <app-recipe-card
         *ngFor="let recipe of featuredRecipes"
         [title]="recipe.title"
         [category]="recipe.category"
-        [image]="recipe.image"
+        [image]="recipe.mainImageUrl"
       ></app-recipe-card>
     </div>
+
+    <ng-template #noRecipes>
+      <div class="bg-card-light dark:bg-card-dark rounded-lg shadow-md p-8 text-center flex flex-col items-center justify-center border border-gray-200 dark:border-gray-700">
+        <span class="material-icons text-primary mb-4" style="font-size: 6rem;">menu_book</span>
+        <p class="text-subtext-light dark:text-subtext-dark mb-4">Nenhuma receita adicionada ainda.</p>
+        <button class="flex items-center justify-center bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors font-medium"
+        (click)="goToCreateRecipe()">
+          <span class="material-icons mr-2">add</span>
+          <span>Adicionar sua primeira receita</span>
+        </button>
+      </div>
+    </ng-template>
   </section>
 
   <!-- cards inferiores -->
   <section>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
       <app-dashboard-info-card
         *ngFor="let card of featureCards"
         [tagText]="card.tagText"

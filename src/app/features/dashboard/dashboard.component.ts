@@ -1,14 +1,12 @@
-import { Component } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {RouterLink} from '@angular/router';
-import {RecipeCardComponent} from '../../shared/recipe-card/recipe-card.component';
+import {Router, RouterLink} from '@angular/router';
+import {RecipeCardComponent} from '../../shared/components/recipe-card/recipe-card.component';
 import {DashboardInfoCardComponent} from './components/dashboard-info-card/dashboard-info-card.component';
-
-interface Recipe {
-  title: string;
-  category: string;
-  image: string;
-}
+import {DashboardSummary, FeaturedRecipe, RecentRecipe} from './models/dashboard.models';
+import {DashboardService} from './services/deshboard.service';
+import { format, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface FeatureCard {
   tagText: string;
@@ -27,57 +25,99 @@ interface FeatureCard {
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   user = 'Vivian';
 
-  featuredRecipes: Recipe[] = [
-    {
-      title: 'Salmão com Molho de Limão',
-      category: 'Prato Principal',
-      image:
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuAEG1oes2EihcMB4z_0v_N1Z_WC3MXSj9UcSHBCIu5X6e2jvzBMkP47lgMsXBmSlzoAAUOHtB0-Epv05NGlrVqB_9hQws-9YsvC56MW92fKLzJ3AMYD1IVzSCClakoSu1qwEhFOF1M2hPfL9T7cBa2XX7p8d5XiCBitC9jPnbMsTiNA7DFx3dTRmeUgzOKXKx31BIgKtbnVaVCeHEtByz636ipoTAz-toCqLvlmIE3VZ32FPwNRPJZb4hmzVPeP-In3rrVfE_-VfRWX',
-    },
-    {
-      title: 'Hambúrguer de Frango Artesanal',
-      category: 'Lanche',
-      image:
-        'https://images.unsplash.com/photo-1606756790138-9f874d4d9a5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    },
-    {
-      title: 'Bolo de Chocolate Cremoso',
-      category: 'Sobremesa',
-      image:
-        'https://images.unsplash.com/photo-1605478901652-cfbb5e7df6c1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    },
-  ];
+  featuredRecipes: FeaturedRecipe[] = [];
+  recentRecipes: RecentRecipe[] = [];
+  summary?: DashboardSummary;
 
-  featureCards: FeatureCard[] = [
-    {
-      tagText: 'Semana de 15 a 21 de Julho',
-      cardColor: 'green',
-      title: 'Cardápio da Semana',
-      description: 'Planeje suas refeições com antecedência e economize tempo.',
-      linkUrl: '/cardapios',
-      linkText: 'Ver Cardápio',
-      linkIcon: 'arrow_forward',
-    },
-    {
-      tagText: 'Lista para 22 de Julho',
-      cardColor: 'blue',
-      title: 'Próxima Lista de Compras',
-      description: 'Verifique os itens que você precisa para a próxima semana.',
-      linkUrl: '/compras',
-      linkText: 'Ver Lista',
-      linkIcon: 'list_alt',
-    },
-    {
-      tagText: 'Atualizado em 14 de Julho',
-      cardColor: 'yellow',
-      title: 'Status do Estoque',
-      description: 'Mantenha o controle dos seus ingredientes e evite desperdícios.',
-      linkUrl: '/estoque',
-      linkText: 'Ver Estoque',
-      linkIcon: 'inventory',
-    },
-  ];
+  featureCards: FeatureCard[] = [];
+
+  constructor(
+    private dashboardService: DashboardService,
+    private router: Router
+  ) {}
+
+  ngOnInit() {
+    this.dashboardService.getFeaturedRecipes().subscribe(res => {
+      this.featuredRecipes = res.featuredRecipes;
+    });
+
+    this.dashboardService.getRecentRecipes().subscribe(res => {
+      this.recentRecipes = res.recent_recipes;
+    });
+
+    this.dashboardService.getSummary().subscribe(res => {
+      this.summary = res.summary;
+      this.featureCards = this.buildFeatureCards(this.summary);
+    });
+  }
+
+  buildFeatureCards(summary: DashboardSummary): FeatureCard[] {
+    const getWeekPeriod = (active?: boolean, start?: string, end?: string) => {
+      if (active && start && end) {
+        const startDate = parseISO(start);
+        const endDate = parseISO(end);
+        return `Semana de ${format(startDate, "d 'de' MMMM", { locale: ptBR })} a ${format(endDate, "d 'de' MMMM", { locale: ptBR })}`;
+      }
+      return 'Nenhum cardápio ativo';
+    };
+
+    const getShoppingListDate = (active?: boolean, plannedFor?: string) => {
+      if (active && plannedFor) {
+        const date = parseISO(plannedFor);
+        return `Lista para ${format(date, "d 'de' MMMM", { locale: ptBR })}`;
+      }
+      return 'Nenhuma lista ativa';
+    };
+
+    const getStockUpdatedAt = (active?: boolean, lastUpdated?: string) => {
+      if (active && lastUpdated) {
+        const date = parseISO(lastUpdated);
+        return `Atualizado em ${format(date, "d 'de' MMMM", { locale: ptBR })}`;
+      }
+      return 'Estoque não cadastrado';
+    };
+
+    return [
+      {
+        tagText: getWeekPeriod(summary.weeklyMenu.active, summary.weeklyMenu.startDate, summary.weeklyMenu.endDate),
+        cardColor: 'green',
+        title: 'Cardápio da Semana',
+        description: summary.weeklyMenu.active
+          ? 'Planeje suas refeições com antecedência e economize tempo.'
+          : 'Comece a planejar suas refeições para organizar sua rotina.',
+        linkUrl: '/cardapios',
+        linkText: summary.weeklyMenu.active ? 'Ver Cardápio' : 'Criar Cardápio',
+        linkIcon: 'arrow_forward',
+      },
+      {
+        tagText: getShoppingListDate(summary.shoppingList.active, summary.shoppingList.plannedFor),
+        cardColor: 'blue',
+        title: 'Próxima Lista de Compras',
+        description: summary.shoppingList.active
+          ? 'Verifique os itens que você precisa para a próxima semana.'
+          : 'Gere sua primeira lista a partir de um cardápio ou adicione itens manualmente.',
+        linkUrl: '/lista-de-compras',
+        linkText: summary.shoppingList.active ? 'Ver Lista' : 'Gerar Lista',
+        linkIcon: 'list_alt',
+      },
+      {
+        tagText: getStockUpdatedAt(summary.availableStock.active, summary.availableStock.lastUpdated),
+        cardColor: 'yellow',
+        title: 'Status do Estoque',
+        description: summary.availableStock.active
+          ? 'Mantenha o controle dos seus ingredientes e evite desperdícios.'
+          : 'Adicione seus ingredientes para ter controle total da sua despensa.',
+        linkUrl: '/estoque',
+        linkText: summary.availableStock.active ? 'Ver Estoque' : 'Gerenciar Estoque',
+        linkIcon: 'inventory',
+      }
+    ];
+  }
+
+  goToCreateRecipe() {
+    this.router.navigate(['/recipes/new']);
+  }
 }

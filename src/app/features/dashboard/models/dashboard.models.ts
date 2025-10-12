@@ -2,7 +2,7 @@ export interface FeaturedRecipe {
   id: number;
   title: string;
   category: string;
-  imageUrl: string;
+  mainImageUrl: string;
   rating: number;
   totalTime: string;
   highlighted: boolean;
@@ -18,7 +18,8 @@ export interface RecentRecipe {
 
 export interface WeeklyMenuSummary {
   active: boolean;
-  period?: string;
+  startDate?: string;
+  endDate?: string;
   menuId?: string;
   recipesCount?: number;
   updatedAt?: string;
