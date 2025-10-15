@@ -3,9 +3,16 @@ export interface IngredientSuggestion {
   name: string;
 }
 
+export interface RecipeIngredient {
+  id?: string;
+  name: string;
+  quantity: number;
+  unit: string;
+}
+
 export interface Ingredient {
   id?: string;
-  nome: string;
-  quantidade: number;
-  unidade: string;
+  name: string;
+  unit: string;
+  category: string;
 }

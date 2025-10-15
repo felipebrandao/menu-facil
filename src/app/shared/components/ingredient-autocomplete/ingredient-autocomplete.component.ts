@@ -1,9 +1,8 @@
-
-import { Component, EventEmitter, Output, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { IngredientService } from '../../services/ingredient.service';
-import { IngredientSuggestion } from '../../models/ingredient.model';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {IngredientService} from '../../services/ingredient.service';
+import {IngredientSuggestion} from '../../models/ingredient.model';
 
 @Component({
   selector: 'app-ingredient-autocomplete',
@@ -14,17 +13,19 @@ import { IngredientSuggestion } from '../../models/ingredient.model';
 })
 export class IngredientAutocompleteComponent {
   @Input() placeholder = 'Buscar ingrediente...';
+  @Input() value: string = '';
+  @Output() valueChange = new EventEmitter<string>();
   @Output() selected = new EventEmitter<{ id?: string, name: string }>();
-  @Output() register = new EventEmitter<void>();
+  @Output() register = new EventEmitter<string>();
 
-  search = '';
   suggestions: IngredientSuggestion[] = [];
   showSuggestions = false;
 
   constructor(private ingredientService: IngredientService) {}
 
   onSearchChange() {
-    const q = this.search.trim();
+    this.valueChange.emit(this.value);
+    const q = this.value.trim();
     if (q.length < 2) {
       this.suggestions = [];
       this.showSuggestions = false;
@@ -44,12 +45,13 @@ export class IngredientAutocompleteComponent {
 
   select(ingredientSuggestion: IngredientSuggestion) {
     this.selected.emit(ingredientSuggestion);
-    this.search = ingredientSuggestion.name;
+    this.value = ingredientSuggestion.name;
+    this.valueChange.emit(this.value);
     this.showSuggestions = false;
   }
 
   registerNew() {
-    this.register.emit();
+    this.register.emit(this.value);
     this.showSuggestions = false;
   }
 

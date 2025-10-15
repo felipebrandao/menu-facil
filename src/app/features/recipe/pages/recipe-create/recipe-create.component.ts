@@ -1,61 +1,125 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {Component} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {FilePreviewPipe} from '../../../../shared/pipes/file-preview.pipe';
-import { IngredientAutocompleteComponent } from '../../../../shared/components/ingredient-autocomplete/ingredient-autocomplete.component';
-
-interface Ingredient {
-  name: string;
-  quantity: number;
-  unit: string;
-}
+import {
+  RecipeIngredientsFormComponent
+} from '../../components/recipe-ingredients-form/recipe-ingredients-form.component';
+import {RecipeService} from '../../../../shared/services/recipe.service';
+import {Router} from '@angular/router';
+import { SuccessModalComponent } from '../../../../shared/components/success-modal/success-modal.component';
+import { ErrorModalComponent } from '../../../../shared/components/error-modal/error-modal.component';
 
 @Component({
   selector: 'app-recipe-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, FilePreviewPipe, IngredientAutocompleteComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FilePreviewPipe,
+    RecipeIngredientsFormComponent,
+    SuccessModalComponent,
+    ErrorModalComponent
+  ],
   templateUrl: './recipe-create.component.html',
   styleUrl: './recipe-create.component.css'
 })
 export class RecipeCreateComponent {
-  recipeName = '';
-  instructions = '';
-  category = '';
+  form: FormGroup;
   categories = ['Café da Manhã', 'Almoço', 'Janta'];
-  ingredient: Ingredient = { name: '', quantity: 1, unit: 'g' };
-  ingredients: Ingredient[] = [];
   units = ['g', 'ml', 'unidade', 'xícara'];
   mainImage?: File;
   galleryImages: File[] = [];
+  showSuccessModal = false;
+  lastRecipeId: string | null = null;
+  ingredientError: string = '';
+  showErrorModal = false;
 
-  addIngredient() {
-    if (this.ingredient.name && this.ingredient.quantity) {
-      this.ingredients.push({ ...this.ingredient });
-      this.ingredient = { name: '', quantity: 1, unit: 'g' };
-    }
+  constructor(
+    private fb: FormBuilder,
+    private recipeService: RecipeService,
+    private router: Router
+  ) {
+    this.form = this.fb.group({
+      recipeName: ['', Validators.required],
+      instructions: [''],
+      category: ['', Validators.required],
+      ingredients: [[], Validators.required]
+    });
   }
 
-  removeIngredient(index: number) {
-    this.ingredients.splice(index, 1);
-  }
+  get recipeName() { return this.form.get('recipeName'); }
+  get category() { return this.form.get('category'); }
+  get ingredients() { return this.form.get('ingredients'); }
 
   onMainImageChange(event: any) {
     this.mainImage = event.target.files[0];
   }
 
   onGalleryImagesChange(event: any) {
-    this.galleryImages = Array.from(event.target.files);
+    const files = Array.from(event.target.files) as File[];
+    this.galleryImages = [...this.galleryImages, ...files];
+    event.target.value = '';
+  }
+
+  onIngredientsChange(ingredients: any) {
+    this.form.get('ingredients')?.setValue(ingredients);
+    this.form.get('ingredients')?.markAsDirty();
+    this.form.get('ingredients')?.updateValueAndValidity();
+    if (ingredients && ingredients.length > 0) {
+      this.ingredientError = '';
+    }
   }
 
   submit() {
-    // Lógica para enviar o formulário
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      if (!this.form.value.ingredients || this.form.value.ingredients.length === 0) {
+        this.ingredientError = 'Adicione pelo menos um ingrediente.';
+      }
+      return;
+    }
+
+    const recipe = {
+      name: this.form.value.recipeName,
+      instructions: this.form.value.instructions,
+      category: this.form.value.category,
+      ingredients: this.form.value.ingredients,
+      mainImage: 'https://cdn.example.com/placeholder.jpg',
+      gallery: []
+    };
+
+    this.recipeService.createRecipe(recipe).subscribe({
+      next: res => {
+        this.lastRecipeId = res.id;
+        this.showSuccessModal = true;
+      },
+      error: err => {
+        this.showErrorModal = true;
+      }
+    });
   }
 
   removeGalleryImage(i: number) {
-
+    this.galleryImages.splice(i, 1);
   }
 
-  openNewIngredientModal() {
-    // Lógica para abrir o modal de cadastro de ingrediente
+  onViewRecipe() {
+    if (this.lastRecipeId) {
+      this.router.navigate(['/receitas', this.lastRecipeId]);
+    }
+  }
+
+  onBackToList() {
+    this.router.navigate(['/receitas']);
+  }
+
+  onRetry() {
+    this.showErrorModal = false;
+    this.submit();
+  }
+
+  onCancel() {
+    this.showErrorModal = false;
   }
 }

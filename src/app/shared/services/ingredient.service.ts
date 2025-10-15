@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { Ingredient, IngredientSuggestion } from '../models/ingredient.model';
+import {Injectable} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import {Observable} from 'rxjs';
+import {Ingredient, IngredientSuggestion} from '../models/ingredient.model';
 
 @Injectable({
   providedIn: 'root'
@@ -13,6 +13,12 @@ export class IngredientService {
     { id: '1', name: 'Frango desfiado' },
     { id: '2', name: 'Peito de frango' },
     { id: '3', name: 'Coxa de frango' }
+  ];
+
+  private mockIngredients: Ingredient[] = [
+    { id: '1', name: 'Frango desfiado', unit: 'g', category: 'Carnes' },
+    { id: '2', name: 'Arroz branco', unit: 'g', category: 'Grãos' },
+    { id: '3', name: 'Cebola', unit: 'unidade', category: 'Legumes' }
   ];
 
   constructor(private http: HttpClient) {}
@@ -31,7 +37,13 @@ export class IngredientService {
   }
 
   create(ingredient: Ingredient): Observable<Ingredient> {
-    return this.http.post<Ingredient>(this.apiUrl, ingredient);
+    //return this.http.post<Ingredient>(this.apiUrl, ingredient);
+    ingredient.id = (this.mockIngredients.length + 1).toString();
+    this.mockIngredients.push(ingredient);
+    return new Observable(observer => {
+      observer.next(ingredient);
+      observer.complete();
+    });
   }
 
 }

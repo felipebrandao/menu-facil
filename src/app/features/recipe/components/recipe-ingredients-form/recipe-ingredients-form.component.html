@@ -1,0 +1,98 @@
+<div class="bg-background-light dark:bg-background-dark p-6 rounded-lg border">
+  <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Ingredientes</h3>
+  <div class="grid grid-cols-1 gap-4">
+    <div class="relative col-span-2">
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+             for="ingredient">Ingrediente</label>
+      <app-ingredient-autocomplete
+        [placeholder]="'Ex: Farinha de trigo, açúcar, etc.'"
+        [(value)]="ingredientForm.value.name"
+        (selected)="onIngredientSelected($event)"
+        (register)="openNewIngredientModal($event)">
+      </app-ingredient-autocomplete>
+    </div>
+    <div class="grid grid-cols-2 gap-4" *ngIf="ingredientForm.value.id">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="quantity">Quantidade</label>
+        <input id="quantity"
+               class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-sm focus:ring-primary focus:border-primary"
+               type="number" [formControl]="quantityControl"/>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="unit">Unidade</label>
+        <select id="unit"
+                class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-sm focus:ring-primary focus:border-primary"
+                [formControl]="unitControl">
+          <option *ngFor="let u of units" [value]="u">{{ u }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <button type="button" (click)="addIngredient()"
+          class="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary/90 transition-colors mt-4"
+          *ngIf="ingredientForm.value.id">
+    Salvar Item
+  </button>
+  <div
+    class="mt-6"
+    [ngClass]="{
+    'border-2 border-dashed border-red-300 dark:border-red-700 rounded-md p-4 text-center': ingredientError
+  }"
+  >
+    <h4 class="text-lg font-bold mb-2 text-gray-900 dark:text-white">
+      Lista de Ingredientes <span class="text-red-500">*</span>
+    </h4>
+    <ul>
+      <li *ngFor="let ing of ingredients; let i = index"
+          class="flex flex-col gap-2 mb-2 bg-white dark:bg-gray-900/50 rounded-lg p-3">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 flex-grow">
+            <span class="font-medium text-gray-800 dark:text-gray-200">{{ ing.name }}</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400"
+                  *ngIf="editIndex !== i">{{ ing.quantity }} {{ ing.unit }}</span>
+          </div>
+          <div class="flex gap-2">
+            <button *ngIf="editIndex !== i" type="button" (click)="startEdit(i)"
+                    class="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+              <span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-lg">edit</span>
+            </button>
+            <button *ngIf="editIndex !== i" type="button" (click)="removeIngredient(i)"
+                    class="p-1 rounded-full text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+              <span class="material-symbols-outlined text-lg">delete</span>
+            </button>
+          </div>
+        </div>
+        <div *ngIf="editIndex === i" class="flex flex-row items-start gap-2 flex-grow mt-2">
+          <input
+            class="w-full sm:w-20 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-1 text-sm"
+            type="number" [(ngModel)]="editIngredient.quantity" [name]="'editQuantity' + i" placeholder="Quantidade"/>
+          <select
+            class="w-full sm:w-28 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-1 text-sm"
+            [(ngModel)]="editIngredient.unit" [name]="'editUnit' + i">
+            <option *ngFor="let u of units" [value]="u">{{ u }}</option>
+          </select>
+          <button type="button" (click)="saveEdit(i)"
+                  class="p-1 rounded-full text-green-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+            <span class="material-symbols-outlined text-lg">check</span>
+          </button>
+          <button type="button" (click)="cancelEdit()"
+                  class="p-1 rounded-full text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+            <span class="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+      </li>
+    </ul>
+    <div *ngIf="ingredientError" class="text-sm text-red-600 dark:text-red-500">
+      {{ ingredientError }}
+    </div>
+    <div *ngIf="ingredientsControls.length === 0 && !ingredientError" class="text-center py-8 text-subtle-light dark:text-subtle-dark">
+      <p>Nenhum ingrediente adicionado ainda.</p>
+    </div>
+  </div>
+  <app-new-ingredient-modal
+    *ngIf="showIngredientModal"
+    [name]="ingredientForm.value.name"
+    (saved)="onIngredientModalSaved($event)"
+    (closed)="onIngredientModalClosed()">
+  </app-new-ingredient-modal>
+</div>

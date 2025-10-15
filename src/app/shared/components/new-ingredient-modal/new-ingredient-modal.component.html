@@ -1,0 +1,37 @@
+<div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-gray-900 w-full max-w-md p-6 rounded-lg shadow-lg space-y-6">
+    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Cadastrar novo ingrediente</h3>
+    <form (ngSubmit)="submit()" #f="ngForm" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="new-ingredient-name">Nome</label>
+        <input class="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-sm focus:ring-primary focus:border-primary"
+               id="new-ingredient-name"
+               placeholder="Ex: Farinha de trigo, açúcar, etc."
+               type="text"
+               [(ngModel)]="name" name="name" required />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="new-ingredient-unit">Unidade Padrão</label>
+        <select class="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-sm focus:ring-primary focus:border-primary"
+                id="new-ingredient-unit"
+                [(ngModel)]="unit" name="unit" required>
+          <option value="g">g</option>
+          <option value="ml">ml</option>
+          <option value="unidade">unidade</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="new-ingredient-category">Categoria do Ingrediente</label>
+        <input class="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-sm focus:ring-primary focus:border-primary"
+               id="new-ingredient-category"
+               placeholder="Ex: Laticínios, Hortifruti, etc."
+               type="text"
+               [(ngModel)]="category" name="category" />
+      </div>
+      <div class="flex justify-end gap-4 pt-2">
+        <button type="button" (click)="close()" class="text-gray-600 dark:text-gray-300 font-medium py-2 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Cancelar</button>
+        <button type="submit" class="bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,6 +1,6 @@
 <div class="relative">
   <input
-    [(ngModel)]="search"
+    [(ngModel)]="value"
     (input)="onSearchChange()"
     (focus)="onSearchChange()"
     (blur)="onBlur()"
@@ -8,15 +8,16 @@
     [placeholder]="placeholder"
     autocomplete="off"
   />
-  <ul *ngIf="showSuggestions && suggestions.length > 0"
-      class="absolute z-10 w-full mt-1 bg-white border rounded shadow max-h-48 overflow-auto">
+  <ul *ngIf="showSuggestions"
+      class="absolute z-10 w-full mt-1 bg-white border rounded shadow max-h-48 overflow-auto
+           dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200">
     <li *ngFor="let s of suggestions"
         (mousedown)="select(s)"
-        class="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+        class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
       {{ s.name }}
     </li>
     <li (mousedown)="registerNew()"
-        class="px-4 py-2 font-semibold text-primary hover:bg-gray-100 cursor-pointer">
+        class="px-4 py-2 font-semibold text-primary hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
       + Cadastrar novo ingrediente
     </li>
   </ul>

@@ -25,3 +25,37 @@
 html {
   overflow-y: scroll;
 }
+
+/* Chrome, Edge, Safari */
+input[type="number"].dark-spin::-webkit-inner-spin-button,
+input[type="number"].dark-spin::-webkit-outer-spin-button {
+  background: #1a202c; /* cor de fundo escura */
+  color: #e5e7eb;      /* cor do ícone */
+  border-radius: 4px;
+}
+
+input[type="number"]:not(.dark-spin)::-webkit-inner-spin-button,
+input[type="number"]:not(.dark-spin)::-webkit-outer-spin-button {
+  color: #374151; /* cinza escuro para modo claro */
+  background: #fff;
+  border-radius: 4px;
+}
+
+/* Firefox */
+input[type="number"].dark-spin {
+  color-scheme: dark;
+}
+
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #111827 inset !important; /* dark:bg-gray-900 */
+  -webkit-text-fill-color: #fff !important; /* texto branco no dark */
+  transition: background-color 5000s ease-in-out 0s;
+}
+html.light input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #fff inset !important; /* bg-white */
+  -webkit-text-fill-color: #111827 !important; /* texto escuro */
+}
+
+
