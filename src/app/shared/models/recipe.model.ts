@@ -1,12 +1,20 @@
 import {RecipeIngredient} from './ingredient.model';
 
 export interface Recipe {
+  id?: string;
   name: string;
-  instructions: string;
   category: string;
-  ingredients: RecipeIngredient[];
+  prepTime?: string;
+  cookTime?: string;
+  servings?: number;
   mainImage?: string;
   gallery?: string[];
+  instructions: string[];
+  ingredients: RecipeIngredient[];
+  rating?: number;
+  reviews?: Review[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CreateRecipeResponse {
@@ -14,4 +22,11 @@ export interface CreateRecipeResponse {
   name: string;
   category: string;
   createdAt: string;
+}
+
+export interface Review {
+  user: string;
+  avatar?: string;
+  rating: number;
+  comment?: string;
 }

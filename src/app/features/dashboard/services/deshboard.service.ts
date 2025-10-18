@@ -45,14 +45,14 @@ export class DashboardService {
 
   private mockRecentRecipes: RecentRecipe[] = [
     {
-      id: '6730c124a93b231bdf09de2b',
+      id: '6730c5bba93b231bdf09e1a2',
       name: 'Arroz de forno',
       mainImageUrl: 'https://cdn.example.com/recipes/arroz-forno.jpg',
       category: 'Almoço',
       createdAt: '2025-10-10T13:42:10Z'
     },
     {
-      id: '6730c12fa93b231bdf09de2c',
+      id: '6730c5bba93b231bdf09e1a2',
       name: 'Panqueca de frango',
       mainImageUrl: 'https://cdn.example.com/recipes/panqueca.jpg',
       category: 'Jantar',
@@ -62,7 +62,7 @@ export class DashboardService {
 
   private mockFeaturedRecipes: FeaturedRecipe[] = [
     {
-      id: 1,
+      id: "6730c5bba93b231bdf09e1a2",
       title: 'Salmão com Molho de Limão',
       category: 'Prato Principal',
       mainImageUrl: 'https://example.com/images/salmao.jpg',
@@ -71,7 +71,7 @@ export class DashboardService {
       highlighted: true
     },
     {
-      id: 2,
+      id: '6730c5bba93b231bdf09e1a2',
       title: 'Hambúrguer de Frango Artesanal',
       category: 'Lanche',
       mainImageUrl: 'https://example.com/images/hamburguer.jpg',

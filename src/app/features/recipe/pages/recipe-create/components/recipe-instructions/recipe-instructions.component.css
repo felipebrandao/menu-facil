@@ -1,0 +1,22 @@
+  /* garante que o preview fique acima e com sombra */
+.cdk-drag-preview {
+  z-index: 1000 !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  transform: translateZ(0);
+}
+
+/* placeholder invisível mas que mantém o espaço do item */
+.cdk-drag-placeholder {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* opcional: suaviza a transição ao reordenar */
+.cdk-drag-animating {
+  transition: transform 200ms cubic-bezier(.2,.8,.2,1);
+}
+
+/* garante que a lista mantenha fluxo normal */
+[cdkDropList] {
+  position: relative;
+}

@@ -1,5 +1,5 @@
 export interface FeaturedRecipe {
-  id: number;
+  id: string;
   title: string;
   category: string;
   mainImageUrl: string;

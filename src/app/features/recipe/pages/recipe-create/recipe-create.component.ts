@@ -1,14 +1,13 @@
 import {Component} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {FilePreviewPipe} from '../../../../shared/pipes/file-preview.pipe';
-import {
-  RecipeIngredientsFormComponent
-} from '../../components/recipe-ingredients-form/recipe-ingredients-form.component';
+import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {RecipeIngredientsFormComponent} from './components/recipe-ingredients-form/recipe-ingredients-form.component';
 import {RecipeService} from '../../../../shared/services/recipe.service';
 import {Router} from '@angular/router';
-import { SuccessModalComponent } from '../../../../shared/components/success-modal/success-modal.component';
-import { ErrorModalComponent } from '../../../../shared/components/error-modal/error-modal.component';
+import {SuccessModalComponent} from '../../../../shared/components/success-modal/success-modal.component';
+import {ErrorModalComponent} from '../../../../shared/components/error-modal/error-modal.component';
+import {RecipeInstructionsComponent} from './components/recipe-instructions/recipe-instructions.component';
+import { RecipeImagesComponent } from './components/recipe-images/recipe-images.component';
 
 @Component({
   selector: 'app-recipe-create',
@@ -16,10 +15,11 @@ import { ErrorModalComponent } from '../../../../shared/components/error-modal/e
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    FilePreviewPipe,
     RecipeIngredientsFormComponent,
     SuccessModalComponent,
-    ErrorModalComponent
+    ErrorModalComponent,
+    RecipeInstructionsComponent,
+    RecipeImagesComponent
   ],
   templateUrl: './recipe-create.component.html',
   styleUrl: './recipe-create.component.css'
@@ -42,7 +42,7 @@ export class RecipeCreateComponent {
   ) {
     this.form = this.fb.group({
       recipeName: ['', Validators.required],
-      instructions: [''],
+      instructions: this.fb.array([this.fb.control('')]),
       category: ['', Validators.required],
       ingredients: [[], Validators.required]
     });
@@ -80,9 +80,13 @@ export class RecipeCreateComponent {
       return;
     }
 
+    const instructions = (this.form.value.instructions || [])
+      .map((s: string) => (s || '').trim())
+      .filter((s: string) => s.length > 0);
+
     const recipe = {
       name: this.form.value.recipeName,
-      instructions: this.form.value.instructions,
+      instructions: instructions,
       category: this.form.value.category,
       ingredients: this.form.value.ingredients,
       mainImage: 'https://cdn.example.com/placeholder.jpg',
@@ -122,4 +126,9 @@ export class RecipeCreateComponent {
   onCancel() {
     this.showErrorModal = false;
   }
+
+  get instructionsArray(): FormArray {
+    return this.form.get('instructions') as FormArray;
+  }
+
 }

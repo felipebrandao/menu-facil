@@ -33,16 +33,6 @@
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                   for="instructions">Instruções</label>
-            <textarea
-              id="instructions"
-              class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-sm focus:ring-primary focus:border-primary"
-              rows="8"
-              placeholder="Descreva o passo a passo da receita aqui..."
-              formControlName="instructions"></textarea>
-          </div>
-          <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="category">Categoria <span class="text-red-500">*</span></label>
             <select
               id="category"
@@ -58,6 +48,9 @@
               Categoria é obrigatória.
             </div>
           </div>
+          <app-recipe-instructions
+            [instructions]="instructionsArray">
+          </app-recipe-instructions>
         </div>
       </div>
     </div>
@@ -67,60 +60,10 @@
         [ingredientError]="ingredientError"
         (ingredientsChange)="onIngredientsChange($event)">
       </app-recipe-ingredients-form>
-      <div class="bg-background-light dark:bg-background-dark p-6 rounded-lg border space-y-6">
-        <div>
-          <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Imagem Principal</h3>
-          <label
-            class="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-lg cursor-pointer bg-white dark:bg-gray-900/50 hover:bg-gray-50 dark:hover:bg-gray-800/50"
-            for="dropzone-file-main">
-            <ng-container *ngIf="!mainImage; else preview">
-              <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                <span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-4xl">cloud_upload</span>
-                <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Clique para carregar</span>
-                  ou arraste e solte</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG (MAX. 800x400px)</p>
-              </div>
-            </ng-container>
-            <ng-template #preview>
-              <div class="relative w-full h-48">
-                <img [src]="mainImage | filePreview" alt="Imagem principal"
-                     class="w-full h-48 object-cover rounded-lg"/>
-                <button
-                  type="button"
-                  (click)="mainImage = undefined"
-                  class="absolute top-2 right-2 bg-black/60 text-white p-1 rounded-full hover:bg-black/80 transition-opacity"
-                  aria-label="Remover imagem principal">
-                  <span class="material-symbols-outlined text-lg">close</span>
-                </button>
-              </div>
-            </ng-template>
-            <input class="hidden" id="dropzone-file-main" type="file" (change)="onMainImageChange($event)"/>
-          </label>
-        </div>
-        <div>
-          <h3 class="text-xl font-bold mb-4">Galeria de Imagens</h3>
-          <div class="grid grid-cols-3 gap-4">
-            <div *ngFor="let img of galleryImages; let i = index" class="relative group">
-              <img [src]="img | filePreview" alt="Gallery image" class="aspect-square w-full object-cover rounded-lg"/>
-              <button
-                type="button"
-                (click)="removeGalleryImage(i)"
-                class="absolute top-1 right-1 bg-black/50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                <span class="material-symbols-outlined text-sm">close</span>
-              </button>
-            </div>
-            <label
-              class="flex items-center justify-center aspect-square w-full border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-lg cursor-pointer bg-white dark:bg-gray-900/50 hover:bg-gray-50 dark:hover:bg-gray-800/50"
-              for="dropzone-file-gallery">
-              <div class="flex flex-col items-center justify-center">
-                <span class="material-symbols-outlined text-gray-500 dark:text-gray-400">add_photo_alternate</span>
-              </div>
-              <input class="hidden" id="dropzone-file-gallery" type="file" multiple
-                     (change)="onGalleryImagesChange($event)"/>
-            </label>
-          </div>
-        </div>
-      </div>
+      <app-recipe-images
+        [(mainImage)]="mainImage"
+        [(galleryImages)]="galleryImages">
+      </app-recipe-images>
       <button
         type="submit"
         class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"

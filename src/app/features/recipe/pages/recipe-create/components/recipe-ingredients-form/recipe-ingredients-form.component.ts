@@ -9,9 +9,9 @@ import {
   ControlValueAccessor,
   FormsModule
 } from '@angular/forms';
-import { RecipeIngredient } from '../../../../shared/models/ingredient.model';
-import { IngredientAutocompleteComponent } from '../../../../shared/components/ingredient-autocomplete/ingredient-autocomplete.component';
-import { NewIngredientModalComponent } from '../../../../shared/components/new-ingredient-modal/new-ingredient-modal.component';
+import { RecipeIngredient } from '../../../../../../shared/models/ingredient.model';
+import { IngredientAutocompleteComponent } from '../../../../../../shared/components/ingredient-autocomplete/ingredient-autocomplete.component';
+import { NewIngredientModalComponent } from '../../../../../../shared/components/new-ingredient-modal/new-ingredient-modal.component';
 
 @Component({
   selector: 'app-recipe-ingredients-form',

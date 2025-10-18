@@ -1,0 +1,50 @@
+<div class="bg-card-light dark:bg-card-dark rounded-lg shadow-sm mt-6">
+  <label class="block text-sm font-medium text-text-light dark:text-text-dark mb-4">Instruções</label>
+  <div class="space-y-4">
+    <div
+      cdkDropList
+      [cdkDropListData]="instructionsControls"
+      (cdkDropListDropped)="drop($event)"
+      class="space-y-4">
+      <div class="flex items-start space-x-3" *ngFor="let ctrl of instructionsControls; let i = index" cdkDrag>
+        <button
+          type="button"
+          cdkDragHandle
+          class="cursor-grab text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 mt-2"
+          aria-hidden>
+          <span class="material-icons">drag_indicator</span>
+        </button>
+        <div class="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-white font-bold text-sm flex-shrink-0 mt-1">{{ i + 1 }}</div>
+        <div class="flex-grow">
+          <textarea
+            [formControl]="ctrl"
+            class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-sm focus:ring-primary focus:border-primary"
+            placeholder="Descreva o passo aqui..."
+            rows="3"></textarea>
+        </div>
+        <button type="button" (click)="removeStep(i)" class="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 mt-2">
+          <span class="material-icons">delete</span>
+        </button>
+
+        <ng-template cdkDragPlaceholder>
+          <div class="flex items-start space-x-3 opacity-0 pointer-events-none">
+            <button type="button" class="w-8 h-8 mt-2"></button>
+            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-white font-bold text-sm flex-shrink-0 mt-1">{{ i + 1 }}</div>
+            <div class="flex-grow">
+              <textarea
+                rows="3"
+                class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-sm">
+              </textarea>
+            </div>
+            <button type="button" class="w-8 h-8 mt-2"></button>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <button type="button" (click)="addStep()" class="flex items-center text-primary font-medium text-sm ml-11">
+      <span class="material-icons mr-1">add_circle_outline</span>
+      Adicionar passo
+    </button>
+  </div>
+</div>
