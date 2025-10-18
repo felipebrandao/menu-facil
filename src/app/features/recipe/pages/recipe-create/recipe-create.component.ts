@@ -7,7 +7,7 @@ import {Router} from '@angular/router';
 import {SuccessModalComponent} from '../../../../shared/components/success-modal/success-modal.component';
 import {ErrorModalComponent} from '../../../../shared/components/error-modal/error-modal.component';
 import {RecipeInstructionsComponent} from './components/recipe-instructions/recipe-instructions.component';
-import { RecipeImagesComponent } from './components/recipe-images/recipe-images.component';
+import {RecipeImagesComponent} from './components/recipe-images/recipe-images.component';
 
 @Component({
   selector: 'app-recipe-create',
@@ -52,16 +52,6 @@ export class RecipeCreateComponent {
   get category() { return this.form.get('category'); }
   get ingredients() { return this.form.get('ingredients'); }
 
-  onMainImageChange(event: any) {
-    this.mainImage = event.target.files[0];
-  }
-
-  onGalleryImagesChange(event: any) {
-    const files = Array.from(event.target.files) as File[];
-    this.galleryImages = [...this.galleryImages, ...files];
-    event.target.value = '';
-  }
-
   onIngredientsChange(ingredients: any) {
     this.form.get('ingredients')?.setValue(ingredients);
     this.form.get('ingredients')?.markAsDirty();
@@ -102,10 +92,6 @@ export class RecipeCreateComponent {
         this.showErrorModal = true;
       }
     });
-  }
-
-  removeGalleryImage(i: number) {
-    this.galleryImages.splice(i, 1);
   }
 
   onViewRecipe() {
