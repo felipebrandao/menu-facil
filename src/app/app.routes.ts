@@ -14,5 +14,12 @@ export const routes: Routes = [
         (m) => m.RecipeCreateComponent
       ),
   },
+  {
+    path: 'receitas/:id',
+    loadComponent: () =>
+      import('./features/recipe/pages/recipe-view/recipe-view.component').then(
+        (m) => m.RecipeViewComponent
+      ),
+  },
   { path: '**', redirectTo: 'dashboard' }, // rota coringa
 ];

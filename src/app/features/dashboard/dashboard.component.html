@@ -46,10 +46,11 @@
 
     <div *ngIf="featuredRecipes?.length; else noRecipes" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       <app-recipe-card
-        *ngFor="let recipe of featuredRecipes"
-        [title]="recipe.title"
-        [category]="recipe.category"
-        [image]="recipe.mainImageUrl"
+        *ngFor="let featuredRecipe of featuredRecipes"
+        [title]="featuredRecipe.title"
+        [category]="featuredRecipe.category"
+        [image]="featuredRecipe.mainImageUrl"
+        [id]="featuredRecipe.id + ''"
       ></app-recipe-card>
     </div>
 
