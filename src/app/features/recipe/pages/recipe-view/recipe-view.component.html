@@ -81,10 +81,12 @@
             <button
               class="flex w-full items-center justify-center rounded-lg h-12 px-4 bg-primary text-zinc-900 font-bold gap-2">
               <span class="material-symbols-outlined">calendar_add_on</span>
-              <span>Adicionar ao Cardápio</span>
+              <span>Adicionar ao Cronograma</span>
             </button>
             <button
-              class="flex w-full items-center justify-center rounded-lg h-12 px-4 bg-primary/20 dark:bg-primary/30 text-zinc-900 dark:text-white font-bold gap-2">
+              (click)="editRecipe(recipe.id)"
+              class="flex w-full items-center justify-center rounded-lg h-12 px-4 bg-primary/20 dark:bg-primary/30 text-zinc-900 dark:text-white font-bold gap-2"
+            >
               <span class="material-symbols-outlined">edit</span>
               <span>Editar Receita</span>
             </button>

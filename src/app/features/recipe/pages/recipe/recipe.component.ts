@@ -1,9 +1,9 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {RecipeIngredientsFormComponent} from './components/recipe-ingredients-form/recipe-ingredients-form.component';
 import {RecipeService} from '../../../../shared/services/recipe.service';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {SuccessModalComponent} from '../../../../shared/components/success-modal/success-modal.component';
 import {ErrorModalComponent} from '../../../../shared/components/error-modal/error-modal.component';
 import {RecipeInstructionsComponent} from './components/recipe-instructions/recipe-instructions.component';
@@ -11,7 +11,7 @@ import {RecipeImagesComponent} from './components/recipe-images/recipe-images.co
 import { NewCategoryModalComponent } from '../../../../shared/components/new-category-modal/new-category-modal.component';
 
 @Component({
-  selector: 'app-recipe-create',
+  selector: 'app-recipe',
   standalone: true,
   imports: [
     CommonModule,
@@ -23,10 +23,10 @@ import { NewCategoryModalComponent } from '../../../../shared/components/new-cat
     RecipeImagesComponent,
     NewCategoryModalComponent
   ],
-  templateUrl: './recipe-create.component.html',
-  styleUrl: './recipe-create.component.css'
+  templateUrl: './recipe.component.html',
+  styleUrl: './recipe.component.css'
 })
-export class RecipeCreateComponent {
+export class RecipeComponent implements OnInit {
   form: FormGroup;
   categories = ['Café da Manhã', 'Almoço', 'Janta'];
   units = ['g', 'ml', 'unidade', 'xícara'];
@@ -41,7 +41,8 @@ export class RecipeCreateComponent {
   constructor(
     private fb: FormBuilder,
     private recipeService: RecipeService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.form = this.fb.group({
       recipeName: ['', Validators.required],
@@ -49,6 +50,25 @@ export class RecipeCreateComponent {
       category: ['', Validators.required],
       ingredients: [[], Validators.required]
     });
+  }
+
+  ngOnInit(): void {
+    const id = this.route.snapshot.queryParamMap.get('id');
+    if (id) {
+      this.recipeService.getRecipeById(id).subscribe(recipe => {
+        if (!recipe) return;
+        this.lastRecipeId = id;
+        this.form.patchValue({
+          recipeName: recipe.name,
+          category: recipe.category,
+          ingredients: recipe.ingredients || []
+        });
+
+        const instArray = this.form.get('instructions') as FormArray;
+        instArray.clear();
+        (recipe.instructions || []).forEach((s: string) => instArray.push(this.fb.control(s)));
+      });
+    }
   }
 
   get recipeName() { return this.form.get('recipeName'); }
@@ -77,24 +97,31 @@ export class RecipeCreateComponent {
       .map((s: string) => (s || '').trim())
       .filter((s: string) => s.length > 0);
 
-    const recipe = {
+    const recipePayload = {
       name: this.form.value.recipeName,
       instructions: instructions,
       category: this.form.value.category,
-      ingredients: this.form.value.ingredients,
-      mainImage: 'https://cdn.example.com/placeholder.jpg',
-      gallery: []
+      ingredients: this.form.value.ingredients
+      // mainImage: 'https://cdn.example.com/placeholder.jpg',
+      // gallery: []
     };
 
-    this.recipeService.createRecipe(recipe).subscribe({
-      next: res => {
-        this.lastRecipeId = res.id;
-        this.showSuccessModal = true;
-      },
-      error: err => {
-        this.showErrorModal = true;
-      }
-    });
+    const finalizeSuccess = (recipeId: string) => {
+      this.lastRecipeId = recipeId;
+      this.showSuccessModal = true;
+    };
+
+    if (this.lastRecipeId) {
+      this.recipeService.updateRecipe(this.lastRecipeId, recipePayload as any).subscribe({
+        next: () => finalizeSuccess(this.lastRecipeId as string),
+        error: () => (this.showErrorModal = true)
+      });
+    } else {
+      this.recipeService.createRecipe(recipePayload as any).subscribe({
+        next: res => finalizeSuccess(res.id),
+        error: () => (this.showErrorModal = true)
+      });
+    }
   }
 
   onViewRecipe() {

@@ -10,8 +10,8 @@ export const routes: Routes = [
   {
     path: 'recipes/new',
     loadComponent: () =>
-      import('./features/recipe/pages/recipe-create/recipe-create.component').then(
-        (m) => m.RecipeCreateComponent
+      import('./features/recipe/pages/recipe/recipe.component').then(
+        (m) => m.RecipeComponent
       ),
   },
   {
@@ -21,5 +21,5 @@ export const routes: Routes = [
         (m) => m.RecipeViewComponent
       ),
   },
-  { path: '**', redirectTo: 'dashboard' }, // rota coringa
+  { path: '**', redirectTo: 'dashboard' },
 ];

@@ -1,6 +1,6 @@
 import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CommonModule, NgClass} from '@angular/common';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {RecipeService} from '../../../../shared/services/recipe.service';
 import {FormsModule} from '@angular/forms';
 import Swiper from 'swiper/bundle';
@@ -52,7 +52,8 @@ export class RecipeViewComponent implements AfterViewInit, OnDestroy, OnInit {
   constructor(
     private route: ActivatedRoute,
     private recipeService: RecipeService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {
   }
 
@@ -166,5 +167,11 @@ export class RecipeViewComponent implements AfterViewInit, OnDestroy, OnInit {
     if (this.swiperInstance) {
       this.swiperInstance.update();
     }
+  }
+
+  editRecipe(id?: string) {
+    if (!id) return;
+    // navega para a tela de criação passando o id como query param.
+    this.router.navigate(['/recipes/new'], { queryParams: { id } });
   }
 }

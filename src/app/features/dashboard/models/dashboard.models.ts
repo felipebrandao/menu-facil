@@ -16,11 +16,11 @@ export interface RecentRecipe {
   mainImageUrl: string;
 }
 
-export interface WeeklyMenuSummary {
+export interface WeeklyScheduleSummary {
   active: boolean;
   startDate?: string;
   endDate?: string;
-  menuId?: string;
+  scheduleId?: string;
   recipesCount?: number;
   updatedAt?: string;
 }
@@ -41,7 +41,7 @@ export interface AvailableStockSummary {
 }
 
 export interface DashboardSummary {
-  weeklyMenu: WeeklyMenuSummary;
+  weeklySchedule: WeeklyScheduleSummary;
   shoppingList: ShoppingListSummary;
   availableStock: AvailableStockSummary;
 }

@@ -118,4 +118,20 @@ export class RecipeService {
     files.forEach(f => formData.append('files', f));
     return this.http.post(`${this.apiUrl}/${recipeId}/images/gallery`, formData);
   }
+
+  updateRecipe(id: string, recipe: Recipe): Observable<CreateRecipeResponse> {
+    const idx = this.mockRecipes.findIndex(r => r.id === id);
+    if (idx !== -1) {
+      this.mockRecipes[idx] = { ...this.mockRecipes[idx], ...recipe, id };
+    } else {
+      this.mockRecipes.push({ ...recipe, id } as any);
+    }
+    return of({
+      id,
+      name: recipe.name,
+      category: recipe.category,
+      createdAt: new Date().toISOString()
+    });
+  }
+
 }

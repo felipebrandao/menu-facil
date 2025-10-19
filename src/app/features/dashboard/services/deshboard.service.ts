@@ -8,9 +8,9 @@ export class DashboardService {
   constructor(private http: HttpClient) {}
 
   private mockDashboardSummary: DashboardSummary = {
-    weeklyMenu: {
+    weeklySchedule: {
       active: true,
-      menuId: '6730c5bba93b231bdf09e1a2',
+      scheduleId: '6730c5bba93b231bdf09e1a2',
       startDate: '2025-10-05',
       endDate: '2025-10-11',
       recipesCount: 12,
