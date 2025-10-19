@@ -103,8 +103,8 @@ export class RecipeService {
 
   getRecipeById(id: string): Observable<Recipe> {
     // return this.http.get<Recipe>(`${this.apiUrl}/${id}`);
-    const recipe = this.mockRecipes[parseInt(id, 10) - 1];
-    return of(recipe);
+    const recipe = this.mockRecipes.find(r => r.id === id);
+    return of(recipe as Recipe);
   }
 
   uploadMainImage(recipeId: string, file: File): Observable<any> {

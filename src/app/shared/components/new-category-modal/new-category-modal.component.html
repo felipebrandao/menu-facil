@@ -1,0 +1,17 @@
+<!-- html -->
+<div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50">
+  <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md p-6">
+    <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Nova Categoria</h3>
+    <input
+      class="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-sm mb-4"
+      placeholder="Nome da categoria"
+      [(ngModel)]="name"
+    />
+    <div class="flex justify-end gap-2">
+      <button type="button" (click)="close()"
+              class="px-4 py-2 rounded-md bg-gray-200 dark:bg-gray-800">Cancelar</button>
+      <button type="button" (click)="save()"
+              class="px-4 py-2 rounded-md bg-primary text-white">Salvar</button>
+    </div>
+  </div>
+</div>

@@ -8,6 +8,7 @@ import {SuccessModalComponent} from '../../../../shared/components/success-modal
 import {ErrorModalComponent} from '../../../../shared/components/error-modal/error-modal.component';
 import {RecipeInstructionsComponent} from './components/recipe-instructions/recipe-instructions.component';
 import {RecipeImagesComponent} from './components/recipe-images/recipe-images.component';
+import { NewCategoryModalComponent } from '../../../../shared/components/new-category-modal/new-category-modal.component';
 
 @Component({
   selector: 'app-recipe-create',
@@ -19,7 +20,8 @@ import {RecipeImagesComponent} from './components/recipe-images/recipe-images.co
     SuccessModalComponent,
     ErrorModalComponent,
     RecipeInstructionsComponent,
-    RecipeImagesComponent
+    RecipeImagesComponent,
+    NewCategoryModalComponent
   ],
   templateUrl: './recipe-create.component.html',
   styleUrl: './recipe-create.component.css'
@@ -34,6 +36,7 @@ export class RecipeCreateComponent {
   lastRecipeId: string | null = null;
   ingredientError: string = '';
   showErrorModal = false;
+  showCategoryModal = false;
 
   constructor(
     private fb: FormBuilder,
@@ -115,6 +118,22 @@ export class RecipeCreateComponent {
 
   get instructionsArray(): FormArray {
     return this.form.get('instructions') as FormArray;
+  }
+
+  openCategoryModal() {
+    this.showCategoryModal = true;
+  }
+
+  onCategorySaved(categoryName: string) {
+    if (categoryName && !this.categories.includes(categoryName)) {
+      this.categories = [...this.categories, categoryName];
+      this.form.patchValue({ category: categoryName });
+    }
+    this.showCategoryModal = false;
+  }
+
+  onCategoryClosed() {
+    this.showCategoryModal = false;
   }
 
 }

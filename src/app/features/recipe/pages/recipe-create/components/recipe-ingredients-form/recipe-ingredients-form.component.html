@@ -4,12 +4,22 @@
     <div class="relative col-span-2">
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
              for="ingredient">Ingrediente</label>
-      <app-ingredient-autocomplete
-        [placeholder]="'Ex: Farinha de trigo, açúcar, etc.'"
-        [(value)]="ingredientForm.value.name"
-        (selected)="onIngredientSelected($event)"
-        (register)="openNewIngredientModal($event)">
-      </app-ingredient-autocomplete>
+      <div class="flex items-end gap-2">
+        <app-ingredient-autocomplete
+          class="flex-1"
+          [placeholder]="'Ex: Farinha de trigo, açúcar, etc.'"
+          [(value)]="ingredientForm.value.name"
+          (selected)="onIngredientSelected($event)"
+          (register)="openNewIngredientModal($event)">
+        </app-ingredient-autocomplete>
+        <button type="button"
+                class="h-10 w-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-md
+               hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                (click)="openNewIngredientModal('')"
+                title="Novo ingrediente">
+          <span class="material-symbols-outlined">add</span>
+        </button>
+      </div>
     </div>
     <div class="grid grid-cols-2 gap-4" *ngIf="ingredientForm.value.id">
       <div>
