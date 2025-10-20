@@ -30,3 +30,14 @@ export interface Review {
   rating: number;
   comment?: string;
 }
+
+export interface RecipeSummary {
+  id: string;
+  name?: string;
+  category: string;
+  mainImage?: string;
+  rating?: number;
+  totalTime?: string;
+  highlighted?: boolean;
+  createdAt?: string;
+}

@@ -35,7 +35,7 @@
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-semibold">Receitas em Destaque</h2>
       <a
-        routerLink="/receitas"
+        routerLink="/my-recipes"
         class="flex items-center space-x-2 bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-300 px-4 py-2 rounded-lg hover:bg-green-200 dark:hover:bg-green-700 transition-colors"
         *ngIf="featuredRecipes?.length"
       >
@@ -47,9 +47,9 @@
     <div *ngIf="featuredRecipes?.length; else noRecipes" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       <app-recipe-card
         *ngFor="let featuredRecipe of featuredRecipes"
-        [title]="featuredRecipe.title"
+        [title]="featuredRecipe.name ?? ''"
         [category]="featuredRecipe.category"
-        [image]="featuredRecipe.mainImageUrl"
+        [image]="featuredRecipe.mainImage ?? ''"
         [id]="featuredRecipe.id + ''"
       ></app-recipe-card>
     </div>

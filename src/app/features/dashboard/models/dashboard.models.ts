@@ -1,21 +1,3 @@
-export interface FeaturedRecipe {
-  id: string;
-  title: string;
-  category: string;
-  mainImageUrl: string;
-  rating: number;
-  totalTime: string;
-  highlighted: boolean;
-}
-
-export interface RecentRecipe {
-  id: string;
-  name: string;
-  category: string;
-  createdAt: string;
-  mainImageUrl: string;
-}
-
 export interface WeeklyScheduleSummary {
   active: boolean;
   startDate?: string;

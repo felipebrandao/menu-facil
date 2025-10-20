@@ -8,6 +8,13 @@ export const routes: Routes = [
     component: DashboardComponent
   },
   {
+    path: 'my-recipes',
+    loadComponent: () =>
+      import('./features/recipe/pages/my-recipes/my-recipes.component').then(
+        (m) => m.MyRecipesComponent
+      ),
+  },
+  {
     path: 'recipes/new',
     loadComponent: () =>
       import('./features/recipe/pages/recipe/recipe.component').then(
@@ -15,7 +22,14 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'receitas/:id',
+    path: 'recipes/edit/:id',
+    loadComponent: () =>
+      import('./features/recipe/pages/recipe/recipe.component').then(
+        (m) => m.RecipeComponent
+      ),
+  },
+  {
+    path: 'recipes/:id',
     loadComponent: () =>
       import('./features/recipe/pages/recipe-view/recipe-view.component').then(
         (m) => m.RecipeViewComponent

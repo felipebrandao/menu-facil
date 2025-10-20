@@ -1,0 +1,89 @@
+<main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+    <h1 class="text-3xl font-bold text-text-light dark:text-text-dark">Minhas Receitas</h1>
+    <div class="flex items-center mt-4 md:mt-0 space-x-4">
+      <div class="relative flex-grow md:flex-grow-0">
+        <span class="material-icons absolute inset-y-0 left-0 pl-3 flex items-center text-subtle-text-light dark:text-subtle-text-dark">search</span>
+        <input
+          class="w-full md:w-64 pl-10 pr-4 py-2 rounded-md border border-border-light dark:border-border-dark bg-background-light dark:bg-card-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          placeholder="Pesquisar receitas..."
+          type="text"
+          (input)="onQueryChange($any($event.target).value)"
+        />
+      </div>
+      <button (click)="goToCreateRecipe()" class="flex items-center justify-center px-4 py-2 bg-primary text-white rounded-md shadow-sm hover:bg-emerald-600">
+        <span class="material-icons mr-2">add</span>
+        Adicionar nova receita
+      </button>
+    </div>
+  </div>
+
+  <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="flex items-center space-x-4">
+      <span class="text-sm font-medium text-subtle-text-light dark:text-subtle-text-dark">Filtrar por:</span>
+      <select (change)="onCategoryChange($any($event.target).value)" class="rounded-md border border-border-light dark:border-border-dark bg-background-light dark:bg-card-dark text-sm">
+        <option>Todas as categorias</option>
+        <option>Prato Principal</option>
+        <option>Lanche</option>
+        <option>Sobremesa</option>
+        <option>Vegetariano</option>
+        <option>Salada</option>
+        <option>Café da Manhã</option>
+      </select>
+    </div>
+
+    <div class="flex items-center space-x-4">
+      <span class="text-sm font-medium text-subtle-text-light dark:text-subtle-text-dark">Ordenar por:</span>
+      <select (change)="onSortChange($any($event.target).value)" class="rounded-md border border-border-light dark:border-border-dark bg-background-light dark:bg-card-dark text-sm">
+        <option value="recent">Mais recentes</option>
+        <option value="alphabet">Ordem alfabética</option>
+        <option value="popular">Mais populares</option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="filtered?.length; else empty" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+    <app-recipe-card
+      *ngFor="let r of filtered"
+      [title]="r.name ?? ''"
+      [category]="r.category"
+      [image]="r.mainImage ?? ''"
+      [id]="r.id || ''"
+    ></app-recipe-card>
+  </div>
+
+  <ng-template #empty>
+    <div class="text-center py-16">
+      <span class="material-icons !text-7xl text-subtext-light dark:text-subtext-dark">restaurant_menu</span>
+      <h2 class="mt-4 text-2xl font-semibold text-text-light dark:text-text-dark">Nenhuma receita encontrada</h2>
+      <p class="mt-2 text-subtle-text-light dark:text-subtle-text-dark">Parece que você ainda não cadastrou nenhuma receita. Que tal começar agora?</p>
+      <button (click)="goToCreateRecipe()" class="mt-6 flex items-center justify-center px-6 py-3 bg-primary text-white rounded-md shadow-sm hover:bg-emerald-600 mx-auto">
+        <span class="material-icons mr-2">add</span>
+        Adicionar sua primeira receita
+      </button>
+    </div>
+  </ng-template>
+
+  <div class="mt-8 flex justify-center" *ngIf="totalPages > 1">
+    <nav aria-label="Pagination" class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+      <button (click)="prevPage()" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-border-light dark:border-border-dark bg-background-light dark:bg-card-dark text-sm font-medium text-subtle-text-light dark:text-subtle-text-dark hover:bg-gray-50 dark:hover:bg-gray-600">
+        <span class="sr-only">Previous</span>
+        <span class="material-icons">chevron_left</span>
+      </button>
+
+      <button *ngFor="let p of pagesToShow"
+              (click)="goToPage(p)"
+              [class.z-10]="p === page"
+              [class.bg-primary]="p === page"
+              [class.text-white]="p === page"
+              class="relative inline-flex items-center px-4 py-2 border border-border-light dark:border-border-dark bg-background-light dark:bg-card-dark text-sm font-medium text-subtle-text-light dark:text-subtle-text-dark hover:bg-gray-50 dark:hover:bg-gray-600">
+        {{ p }}
+      </button>
+
+      <button (click)="nextPage()" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-border-light dark:border-border-dark bg-background-light dark:bg-card-dark text-sm font-medium text-subtle-text-light dark:text-subtle-text-dark hover:bg-gray-50 dark:hover:bg-gray-600">
+        <span class="sr-only">Next</span>
+        <span class="material-icons">chevron_right</span>
+      </button>
+    </nav>
+  </div>
+</main>

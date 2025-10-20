@@ -2,34 +2,38 @@
   class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
   <div class="container mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16">
-      <div class="flex items-center gap-4">
+      <a routerLink="/dashboard" class="flex items-center gap-4">
         <svg class="h-8 w-8 text-primary" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
           <path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor"></path>
         </svg>
         <h1 class="text-xl font-bold text-gray-900 dark:text-white">Menu Fácil</h1>
-      </div>
+      </a>
       <nav class="hidden md:flex items-center space-x-6">
         <a
+          routerLink="/my-recipes"
           class="flex items-center space-x-2 text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark"
-          href="#">
+        >
           <span class="material-icons">menu_book</span>
           <span>Receitas</span>
         </a>
         <a
           class="flex items-center space-x-2 text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark"
-          href="#">
+          href="#"
+        >
           <span class="material-icons">calendar_today</span>
           <span>Cronograma</span>
         </a>
         <a
           class="flex items-center space-x-2 text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark"
-          href="#">
+          href="#"
+        >
           <span class="material-icons">shopping_cart</span>
           <span>Lista de Compras</span>
         </a>
         <a
           class="flex items-center space-x-2 text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark"
-          href="#">
+          href="#"
+        >
           <span class="material-icons">inventory_2</span>
           <span>Estoque</span>
         </a>
@@ -37,9 +41,9 @@
       <div class="flex items-center gap-4">
         <button (click)="toggleDarkMode()"
                 class="text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark">
-      <span class="material-icons">
-        {{ isDarkMode ? 'light_mode' : 'dark_mode' }}
-      </span>
+          <span class="material-icons">
+            {{ isDarkMode ? 'light_mode' : 'dark_mode' }}
+          </span>
         </button>
         <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
           <span class="material-symbols-outlined text-gray-600 dark:text-gray-300">notifications</span>

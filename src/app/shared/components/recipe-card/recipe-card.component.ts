@@ -10,10 +10,10 @@ import {RouterLink} from '@angular/router';
   styleUrl: './recipe-card.component.css'
 })
 export class RecipeCardComponent {
-  @Input() title!: string;
-  @Input() category!: string;
-  @Input() image!: string;
-  @Input() id!: string;
+  @Input() title: string = '';
+  @Input() category: string = '';
+  @Input() image: string = '';
+  @Input() id: string = '';
 
   imageError = false;
 

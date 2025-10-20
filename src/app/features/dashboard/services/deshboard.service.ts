@@ -1,7 +1,8 @@
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
-import {DashboardSummary, FeaturedRecipe, RecentRecipe} from '../models/dashboard.models';
+import {DashboardSummary} from '../models/dashboard.models';
 import {HttpClient} from '@angular/common/http';
+import {RecipeSummary} from '../../../shared/models/recipe.model';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
@@ -43,38 +44,38 @@ export class DashboardService {
   //   }
   // };
 
-  private mockRecentRecipes: RecentRecipe[] = [
+  private mockRecentRecipes: RecipeSummary[] = [
     {
       id: '6730c5bba93b231bdf09e1a2',
       name: 'Arroz de forno',
-      mainImageUrl: 'https://cdn.example.com/recipes/arroz-forno.jpg',
+      mainImage: 'https://cdn.example.com/recipes/arroz-forno.jpg',
       category: 'Almoço',
       createdAt: '2025-10-10T13:42:10Z'
     },
     {
       id: '6730c5bba93b231bdf09e1a2',
       name: 'Panqueca de frango',
-      mainImageUrl: 'https://cdn.example.com/recipes/panqueca.jpg',
+      mainImage: 'https://cdn.example.com/recipes/panqueca.jpg',
       category: 'Jantar',
       createdAt: '2025-10-09T19:15:33Z'
     }
   ];
 
-  private mockFeaturedRecipes: FeaturedRecipe[] = [
+  private mockFeaturedRecipes: RecipeSummary[] = [
     {
       id: "6730c5bba93b231bdf09e1a2",
-      title: 'Salmão com Molho de Limão',
+      name: 'Salmão com Molho de Limão',
       category: 'Prato Principal',
-      mainImageUrl: 'https://example.com/images/salmao.jpg',
+      mainImage: 'https://example.com/images/salmao.jpg',
       rating: 4.8,
       totalTime: '30 min',
       highlighted: true
     },
     {
       id: '6730c5bba93b231bdf09e1a2',
-      title: 'Hambúrguer de Frango Artesanal',
+      name: 'Hambúrguer de Frango Artesanal',
       category: 'Lanche',
-      mainImageUrl: 'https://example.com/images/hamburguer.jpg',
+      mainImage: 'https://example.com/images/hamburguer.jpg',
       rating: 4.5,
       totalTime: '20 min',
       highlighted: true
@@ -82,7 +83,7 @@ export class DashboardService {
   ];
 
 
-  getFeaturedRecipes(): Observable<{ featuredRecipes: FeaturedRecipe[] }> {
+  getFeaturedRecipes(): Observable<{ featuredRecipes: RecipeSummary[] }> {
     //return this.http.get<{ featuredRecipes: FeaturedRecipe[] }>('/api/dashboard/featured-recipes');
     return new Observable(observer => {
       observer.next({ featuredRecipes: this.mockFeaturedRecipes });
@@ -90,7 +91,7 @@ export class DashboardService {
     });
   }
 
-  getRecentRecipes(): Observable<{ recent_recipes: RecentRecipe[] }> {
+  getRecentRecipes(): Observable<{ recent_recipes: RecipeSummary[] }> {
     //return this.http.get<{ recent_recipes: RecentRecipe[] }>('/api/dashboard/recent-recipes');
     return new Observable(observer =>{
       observer.next({ recent_recipes: this.mockRecentRecipes });

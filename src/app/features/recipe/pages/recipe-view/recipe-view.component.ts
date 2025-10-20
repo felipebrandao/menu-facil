@@ -172,6 +172,6 @@ export class RecipeViewComponent implements AfterViewInit, OnDestroy, OnInit {
   editRecipe(id?: string) {
     if (!id) return;
     // navega para a tela de criação passando o id como query param.
-    this.router.navigate(['/recipes/new'], { queryParams: { id } });
+    this.router.navigate(['/recipes/edit'], { queryParams: { id } });
   }
 }

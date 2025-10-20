@@ -1,14 +1,15 @@
-  import {Component, OnInit} from '@angular/core';
-  import { CommonModule } from '@angular/common';
-  import {Router, RouterLink} from '@angular/router';
-  import {RecipeCardComponent} from '../../shared/components/recipe-card/recipe-card.component';
-  import {DashboardInfoCardComponent} from './components/dashboard-info-card/dashboard-info-card.component';
-  import {DashboardSummary, FeaturedRecipe, RecentRecipe} from './models/dashboard.models';
-  import {DashboardService} from './services/deshboard.service';
-  import { format, parseISO } from 'date-fns';
-  import { ptBR } from 'date-fns/locale';
+import {Component, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {Router, RouterLink} from '@angular/router';
+import {RecipeCardComponent} from '../../shared/components/recipe-card/recipe-card.component';
+import {DashboardInfoCardComponent} from './components/dashboard-info-card/dashboard-info-card.component';
+import {DashboardSummary} from './models/dashboard.models';
+import {DashboardService} from './services/deshboard.service';
+import {RecipeSummary} from '../../shared/models/recipe.model';
+import {format, parseISO} from 'date-fns';
+import {ptBR} from 'date-fns/locale';
 
-  interface FeatureCard {
+interface FeatureCard {
     tagText: string;
     cardColor: 'green' | 'blue' | 'yellow';
     title: string;
@@ -28,8 +29,8 @@
   export class DashboardComponent implements OnInit {
     user = 'Vivian';
 
-    featuredRecipes: FeaturedRecipe[] = [];
-    recentRecipes: RecentRecipe[] = [];
+    featuredRecipes: RecipeSummary[] = [];
+    recentRecipes: RecipeSummary[] = [];
     summary?: DashboardSummary;
 
     featureCards: FeatureCard[] = [];
