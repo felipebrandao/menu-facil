@@ -42,15 +42,25 @@
     </div>
   </div>
 
-  <div *ngIf="filtered?.length; else empty" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-    <app-recipe-card
-      *ngFor="let r of filtered"
-      [title]="r.name ?? ''"
-      [category]="r.category"
-      [image]="r.mainImage ?? ''"
-      [id]="r.id || ''"
-    ></app-recipe-card>
-  </div>
+  <ng-container *ngIf="!isLoading && filtered?.length; else skeletonOrEmpty">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+      <app-recipe-card
+        *ngFor="let r of filtered"
+        [title]="r.name ?? ''"
+        [category]="r.category"
+        [image]="r.mainImage ?? ''"
+        [id]="r.id || ''"
+      ></app-recipe-card>
+    </div>
+  </ng-container>
+
+  <ng-template #skeletonOrEmpty>
+    <ng-container *ngIf="isLoading; else empty">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <app-skeleton *ngFor="let n of [1,2,3,4,5,6,7,8]" [rows]="3" widthClass="w-full" heightClass="h-48"></app-skeleton>
+      </div>
+    </ng-container>
+  </ng-template>
 
   <ng-template #empty>
     <div class="text-center py-16">

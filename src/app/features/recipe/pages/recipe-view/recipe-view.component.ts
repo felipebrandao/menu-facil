@@ -7,20 +7,7 @@ import Swiper from 'swiper/bundle';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-
-interface Recipe {
-  name: string;
-  category: string;
-  prepTime: string;
-  cookTime: string;
-  servings: string;
-  mainImage: string;
-  gallery: string[];
-  instructions: string[];
-  ingredients: { name: string; details: string }[];
-  rating: number;
-  reviews: { user: string; avatar: string; rating: number; comment: string }[];
-}
+import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
 
 @Component({
   selector: 'app-recipe-view',
@@ -29,11 +16,14 @@ interface Recipe {
   imports: [
     NgClass,
     CommonModule,
-    FormsModule
+    FormsModule,
+    SkeletonComponent
   ],
   standalone: true
 })
 export class RecipeViewComponent implements AfterViewInit, OnDestroy, OnInit {
+
+  isLoading = true;
 
   public Math = Math;
   mainImageError = false;
@@ -60,10 +50,12 @@ export class RecipeViewComponent implements AfterViewInit, OnDestroy, OnInit {
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
+      this.isLoading = true;
       this.recipeService.getRecipeById(id).subscribe(recipe => {
         this.recipe = recipe;
         this.preloadMainImage(this.recipe?.mainImage);
 
+        this.isLoading = false;
         this.cdr.detectChanges();
 
         setTimeout(() => this.initSwiper(), 0);
@@ -171,7 +163,8 @@ export class RecipeViewComponent implements AfterViewInit, OnDestroy, OnInit {
 
   editRecipe(id?: string) {
     if (!id) return;
-    // navega para a tela de criação passando o id como query param.
-    this.router.navigate(['/recipes/edit'], { queryParams: { id } });
+    this.router.navigate(['/recipes/edit', id]).then(() => {
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+    });
   }
 }

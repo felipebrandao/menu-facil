@@ -1,0 +1,7 @@
+/* `src/app/features/schedule/schedule.component.css` */
+:host { display: block; }
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156,163,175,0.6); border-radius: 8px; }
+.translate-x-full { transform: translateX(100%); transition: transform .25s ease-in-out; }
+.translate-x-0 { transform: translateX(0); transition: transform .25s ease-in-out; }
+

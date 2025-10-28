@@ -1,0 +1,46 @@
+
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-px bg-border-light dark:bg-border-dark border border-border-light dark:border-border-dark rounded-lg overflow-hidden">
+
+  <div *ngFor="let day of week; let i = index"
+       class="min-h-[12rem] p-1.5 flex flex-col transition-colors"
+       [ngClass]="{
+         'bg-card-light dark:bg-card-dark hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer': true
+       }"
+       (click)="emitOpen(i)">
+
+    <div class="flex items-center justify-between mb-2">
+      <div>
+        <div class="text-sm font-semibold text-text-light dark:text-text-dark">
+          {{ day.label }}
+        </div>
+        <div class="text-xs text-subtext-light">
+          {{ day.short }}
+        </div>
+      </div>
+
+      <span class="text-xs px-2 py-0.5 rounded-full"
+            [ngClass]="{
+              'bg-primary text-white': day.date.toDateString() === todayString,
+              'bg-gray-100 dark:bg-gray-700 text-subtext-light': day.date.toDateString() !== todayString
+            }">
+        {{ day.date | date:'dd/MM' }}
+      </span>
+    </div>
+
+    <div class="flex-grow space-y-2 overflow-y-auto">
+      <div *ngFor="let it of day.items; let j = index"
+           class="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-md text-xs text-blue-800 dark:text-blue-300 truncate cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900 flex justify-between items-center"
+           (click)="emitOpenItem(i, j)">
+        <div class="truncate">
+          <p class="font-semibold truncate">{{ it.name }}</p>
+          <p class="text-[11px] text-subtext-light">{{ it.category }}</p>
+        </div>
+        <button (click)="emitRemove(i, j); $event.stopPropagation()"
+                title="Remover"
+                class="text-subtext-light hover:text-red-500 flex-shrink-0">
+          <span class="material-icons text-sm">delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -8,7 +8,7 @@ import {SuccessModalComponent} from '../../../../shared/components/success-modal
 import {ErrorModalComponent} from '../../../../shared/components/error-modal/error-modal.component';
 import {RecipeInstructionsComponent} from './components/recipe-instructions/recipe-instructions.component';
 import {RecipeImagesComponent} from './components/recipe-images/recipe-images.component';
-import { NewCategoryModalComponent } from '../../../../shared/components/new-category-modal/new-category-modal.component';
+import {NewCategoryModalComponent} from '../../../../shared/components/new-category-modal/new-category-modal.component';
 
 @Component({
   selector: 'app-recipe',
@@ -24,7 +24,7 @@ import { NewCategoryModalComponent } from '../../../../shared/components/new-cat
     NewCategoryModalComponent
   ],
   templateUrl: './recipe.component.html',
-  styleUrl: './recipe.component.css'
+  styleUrls: ['./recipe.component.css']
 })
 export class RecipeComponent implements OnInit {
   form: FormGroup;
@@ -53,7 +53,7 @@ export class RecipeComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const id = this.route.snapshot.queryParamMap.get('id');
+    const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.recipeService.getRecipeById(id).subscribe(recipe => {
         if (!recipe) return;
@@ -126,12 +126,12 @@ export class RecipeComponent implements OnInit {
 
   onViewRecipe() {
     if (this.lastRecipeId) {
-      this.router.navigate(['/receitas', this.lastRecipeId]);
+      this.router.navigate(['/recipes', this.lastRecipeId]);
     }
   }
 
   onBackToList() {
-    this.router.navigate(['/receitas']);
+    this.router.navigate(['/recipes']);
   }
 
   onRetry() {

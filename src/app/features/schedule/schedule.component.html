@@ -1,0 +1,177 @@
+<!-- `src/app/features/schedule/schedule.component.html` -->
+<main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="lg:col-span-1">
+      <div class="space-y-6">
+        <div>
+          <h1 class="text-3xl font-bold">Monte seu Cronograma</h1>
+          <p class="text-subtext-light mt-1">Arraste ou adicione as receitas para montar seu plano semanal.</p>
+        </div>
+
+        <div class="relative">
+          <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+          <input [(ngModel)]="filterQuery"
+                 class="w-full pl-10 pr-4 py-2 bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-md focus:ring-primary focus:border-primary"
+                 placeholder="Pesquisa rápida de receitas" type="text"/>
+        </div>
+
+        <div>
+          <p class="text-sm font-medium text-subtext-light mb-2">Filtrar por categoria:</p>
+          <div class="flex flex-wrap gap-2">
+            <button *ngFor="let c of categories"
+                    (click)="filterCategory = c"
+                    [ngClass]="{'bg-primary/10 text-primary dark:bg-primary/20': filterCategory===c, 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300': filterCategory!==c}"
+                    class="px-4 py-1.5 text-sm font-medium rounded-full">
+              {{ c }}
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+          <div *ngFor="let r of filteredRecipes()"
+               class="bg-card-light dark:bg-card-dark p-4 rounded-lg border border-border-light dark:border-border-dark shadow-sm flex justify-between items-start">
+            <div>
+              <h3 class="font-semibold">{{ r.name }}</h3>
+              <p class="text-sm text-subtext-light">{{ r.category }}</p>
+            </div>
+            <button (click)="openAddRecipeModal(r)" class="text-subtext-light dark:text-subtext-dark hover:text-primary dark:hover:text-primary">
+              <span class="material-icons">add_circle_outline</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lg:col-span-2">
+      <div class="bg-card-light dark:bg-card-dark p-6 rounded-lg shadow-sm">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+          <div class="flex items-center space-x-2">
+            <button (click)="prevPeriod()" class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+              <span class="material-icons text-xl">chevron_left</span>
+            </button>
+            <h2 class="text-xl font-semibold min-w-[200px] text-center whitespace-nowrap">
+              {{ selectedPeriodLabel }}
+            </h2>
+            <button (click)="nextPeriod()" class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+              <span class="material-icons text-xl">chevron_right</span>
+            </button>
+          </div>
+
+          <div class="flex items-center justify-between flex-wrap gap-1 w-full">
+            <!-- Grupo central: botões Semanal / Mensal -->
+            <div class="flex flex-1 justify-center">
+              <div class="flex rounded-md border border-border-light dark:border-border-dark">
+                <button
+                  (click)="setView('weekly')"
+                  [ngClass]="{
+                  'px-3 py-1.5 text-sm rounded-l-md': true,
+                  'bg-primary text-white': viewMode === 'weekly',
+                  'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600': viewMode !== 'weekly'
+                }">
+                  Semanal
+                </button>
+                <button
+                  (click)="setView('monthly')"
+                  [ngClass]="{
+                  'px-3 py-1.5 text-sm rounded-r-md': true,
+                  'bg-primary text-white': viewMode === 'monthly',
+                  'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600': viewMode !== 'monthly'
+                }">
+                  Mensal
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div *ngIf="viewMode === 'weekly'">
+          <app-schedule-weekly
+            [week]="week"
+            [recipes]="recipes"
+            [filterQuery]="filterQuery"
+            [filterCategory]="filterCategory"
+            (addToDay)="addToDay($event.recipe, $event.dayIndex)"
+            (removeFromDay)="removeFromDay($event.dayIndex, $event.itemIndex)"
+            (openItem)="onOpenScheduled($event)"
+          ></app-schedule-weekly>
+        </div>
+
+        <div *ngIf="viewMode === 'monthly'">
+          <app-schedule-monthly
+            [currentDate]="currentDate"
+            [recipes]="recipes"
+            [filterQuery]="filterQuery"
+            [filterCategory]="filterCategory"
+            [scheduledMap]="scheduledMap"
+            (addToDate)="addToDate($event)"
+            (removeFromDate)="onRemoveFromDate($event)"
+            (openItem)="onOpenScheduled($event)"
+          ></app-schedule-monthly>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="showRecipeModal" class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center">
+    <div class="bg-card-light dark:bg-card-dark rounded-lg shadow-xl w-full max-w-md mx-4 p-6 transform transition-all">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-text-light dark:text-text-dark">Adicionar ao Calendário</h2>
+        <button (click)="closeAddRecipeModal()" class="text-subtext-light dark:text-subtext-dark hover:text-red-500">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <p class="text-subtext-light dark:text-subtext-dark mb-4">
+        Selecione uma data para adicionar a receita:
+        <span class="font-semibold text-primary">{{ modalRecipe?.name }}</span>
+      </p>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-subtext-light dark:text-subtext-dark mb-1" for="date">Data</label>
+          <div class="relative">
+            <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">calendar_today</span>
+            <input id="date" name="date" type="date" class="w-full pl-10 pr-4 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-md focus:ring-primary focus:border-primary"
+                   [(ngModel)]="modalDate"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-2">
+        <button (click)="closeAddRecipeModal()" class="px-4 py-2 rounded-md border border-border-light dark:border-border-dark text-sm">
+          Cancelar
+        </button>
+        <button (click)="confirmAddFromModal()" class="px-4 py-2 rounded-md bg-primary text-white text-sm">
+          Adicionar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="showScheduledModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-card-light dark:bg-card-dark rounded-lg shadow-xl w-full max-w-md mx-4 p-6 transform transition-all">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-text-light dark:text-text-dark">Agendamento</h2>
+        <button (click)="closeScheduledModal()" class="text-subtext-light dark:text-subtext-dark hover:text-red-500">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <div class="mb-4">
+        <p class="font-semibold text-lg">{{ scheduledModalRecipe?.name }}</p>
+        <p class="text-sm text-subtext-light">{{ scheduledModalRecipe?.category }}</p>
+        <p class="text-sm text-subtext-light mt-2">Data: <span class="font-medium">{{ formatWeekdayDate(scheduledModalDateKey) }}</span></p>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-6">
+        <button (click)="viewRecipeFromModal()" class="px-4 py-2 rounded-md bg-primary text-white text-sm">
+          Ver Receita
+        </button>
+        <button (click)="confirmRemoveScheduled()" class="px-4 py-2 rounded-md bg-red-500 text-white text-sm">
+          Remover
+        </button>
+      </div>
+    </div>
+  </div>
+</main>

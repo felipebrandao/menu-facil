@@ -35,5 +35,10 @@ export const routes: Routes = [
         (m) => m.RecipeViewComponent
       ),
   },
+  {
+    path: 'schedule',
+    loadComponent: () =>
+      import('./features/schedule/schedule.component').then(m => m.ScheduleComponent)
+  },
   { path: '**', redirectTo: 'dashboard' },
 ];
