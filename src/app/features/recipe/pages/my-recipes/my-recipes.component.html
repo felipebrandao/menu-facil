@@ -50,6 +50,7 @@
         [category]="r.category"
         [image]="r.mainImage ?? ''"
         [id]="r.id || ''"
+        [isFavorite]="r.highlighted ?? false"
       ></app-recipe-card>
     </div>
   </ng-container>
