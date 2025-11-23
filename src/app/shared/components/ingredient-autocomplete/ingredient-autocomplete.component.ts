@@ -33,7 +33,7 @@ export class IngredientAutocompleteComponent {
     }
     this.ingredientService.search(q, 3).subscribe({
       next: res => {
-        this.suggestions = res.ingredientSuggestion;
+        this.suggestions = res;
         this.showSuggestions = true;
       },
       error: () => {
