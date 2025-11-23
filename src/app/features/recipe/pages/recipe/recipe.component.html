@@ -33,7 +33,8 @@
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="category">Categoria <span class="text-red-500">*</span></label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="category">Categoria
+              <span class="text-red-500">*</span></label>
             <div class="flex items-center gap-2">
               <select
                 id="category"
@@ -42,8 +43,8 @@
                 formControlName="category"
                 required
               >
-                <option value="">Selecione uma categoria</option>
-                <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+                <option ngValue="''">Selecione uma categoria</option>
+                <option *ngFor="let cat of categories" [ngValue]="cat">{{ cat.name }}</option>
               </select>
               <button type="button"
                       (click)="openCategoryModal()"
@@ -56,6 +57,40 @@
               Categoria é obrigatória.
             </div>
           </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="total-time">Tempo
+                Total (minutos)</label>
+              <input
+                id="total-time"
+                class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-sm focus:ring-primary focus:border-primary"
+                placeholder="Ex: 45"
+                type="number"
+                formControlName="totalTime"
+              />
+              <div *ngIf="totalTime?.invalid && totalTime?.touched" class="text-red-500 text-sm">
+                O tempo deve ser um número válido.
+              </div>
+            </div>
+
+            <div class="flex flex-col h-full justify-center pt-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Favorito</label>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  (click)="toggleFavorite()"
+                  aria-label="Favoritar"
+                  class="p-2 rounded-full transition-colors"
+                >
+                  <span class="material-icons text-base" [ngClass]="{'text-red-500': highlighted?.value}" aria-hidden="true">
+                    {{ highlighted?.value ? 'favorite' : 'favorite_border' }}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <app-recipe-instructions
             [instructions]="instructionsArray">
           </app-recipe-instructions>
@@ -66,7 +101,6 @@
       <div class="mb-6">
         <app-recipe-ingredients-form
           formControlName="ingredients"
-          [units]="units"
           [ingredientError]="ingredientError"
           (ingredientsChange)="onIngredientsChange($event)">
         </app-recipe-ingredients-form>

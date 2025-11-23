@@ -33,7 +33,9 @@
         <select id="unit"
                 class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-sm focus:ring-primary focus:border-primary"
                 [formControl]="unitControl">
-          <option *ngFor="let u of units" [value]="u">{{ u }}</option>
+          <option *ngFor="let u of availableUnits" [value]="u.id">
+            {{ u.abbreviation }}
+          </option>
         </select>
       </div>
     </div>
@@ -59,7 +61,7 @@
           <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 flex-grow">
             <span class="font-medium text-gray-800 dark:text-gray-200">{{ ing.name }}</span>
             <span class="text-sm text-gray-500 dark:text-gray-400"
-                  *ngIf="editIndex !== i">{{ ing.quantity }} {{ ing.unit }}</span>
+                  *ngIf="editIndex !== i">{{ ing.quantity }} {{ getUnitAbbreviation(ing.unit) }}</span>
           </div>
           <div class="flex gap-2">
             <button *ngIf="editIndex !== i" type="button" (click)="startEdit(i)"
@@ -79,7 +81,9 @@
           <select
             class="w-full sm:w-28 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-1 text-sm"
             [(ngModel)]="editIngredient.unit" [name]="'editUnit' + i">
-            <option *ngFor="let u of units" [value]="u">{{ u }}</option>
+            <option *ngFor="let u of availableUnits" [value]="u.id">
+              {{ u.abbreviation }}
+            </option>
           </select>
           <button type="button" (click)="saveEdit(i)"
                   class="p-1 rounded-full text-green-500 hover:bg-gray-100 dark:hover:bg-gray-800">
@@ -101,7 +105,7 @@
   </div>
   <app-new-ingredient-modal
     *ngIf="showIngredientModal"
-    [name]="ingredientForm.value.name"
+    [formData]="{ id: undefined, name: ingredientForm.value.name }"
     (saved)="onIngredientModalSaved($event)"
     (closed)="onIngredientModalClosed()">
   </app-new-ingredient-modal>
