@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {Ingredient, IngredientSuggestion} from '../models/ingredient.model';
+import {IngredientCreateRequest, IngredientResponse} from '../models/ingredient.model';
 
 @Injectable({
   providedIn: 'root'
@@ -9,41 +9,32 @@ import {Ingredient, IngredientSuggestion} from '../models/ingredient.model';
 export class IngredientService {
   private apiUrl = '/api/ingredients';
 
-  private mockIngredientesSuggestion: IngredientSuggestion[] = [
-    { id: '1', name: 'Frango desfiado' },
-    { id: '2', name: 'Peito de frango' },
-    { id: '3', name: 'Coxa de frango' }
-  ];
-
-  private mockIngredients: Ingredient[] = [
-    { id: '1', name: 'Frango desfiado', unit: 'g', category: 'Carnes' },
-    { id: '2', name: 'Arroz branco', unit: 'g', category: 'Grãos' },
-    { id: '3', name: 'Cebola', unit: 'unidade', category: 'Legumes' }
-  ];
-
   constructor(private http: HttpClient) {}
 
-  search(query: string, limit = 3): Observable<{ ingredientSuggestion: IngredientSuggestion[] }> {
-    // return this.http.get<{ ingredientSuggestion: IngredientSuggestion[] }>(
-    //   `${this.apiUrl}?query=${encodeURIComponent(query)}&limit=${limit}`
-    // );
-    return new Observable(observer => {
-      const results = this.mockIngredientesSuggestion.filter(ing =>
-        ing.name.toLowerCase().includes(query.toLowerCase())
-      ).slice(0, limit);
-      observer.next({ ingredientSuggestion: results });
-      observer.complete();
-    });
+  search(query: string, limit: number): Observable<IngredientResponse[]> {
+    const params = new HttpParams()
+      .set('query', query)
+      .set('limit', String(limit));
+    return this.http.get<IngredientResponse[]>(`${this.apiUrl}/search`, { params });
   }
 
-  create(ingredient: Ingredient): Observable<Ingredient> {
-    //return this.http.post<Ingredient>(this.apiUrl, ingredient);
-    ingredient.id = (this.mockIngredients.length + 1).toString();
-    this.mockIngredients.push(ingredient);
-    return new Observable(observer => {
-      observer.next(ingredient);
-      observer.complete();
-    });
+  create(ingredient: IngredientCreateRequest): Observable<IngredientResponse> {
+    return this.http.post<IngredientResponse>(this.apiUrl, ingredient);
   }
 
+  list(): Observable<IngredientResponse[]> {
+    return this.http.get<IngredientResponse[]>(this.apiUrl);
+  }
+
+  update(id: string, payload: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${id}`, payload);
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  getById(id: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}`);
+  }
 }
