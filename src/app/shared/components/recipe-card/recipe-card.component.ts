@@ -17,6 +17,7 @@ export class RecipeCardComponent {
   @Input() category: string = '';
   @Input() image: string = '';
   @Input() id: string = '';
+  @Input() isFavorite?: boolean = false;
 
   @Input() author?: string = 'Vivian';
 
@@ -25,7 +26,6 @@ export class RecipeCardComponent {
 
   imageError = false;
   avatarError = false;
-  isFavorite = false;
 
   @Output() favoriteToggled = new EventEmitter<{ id: string; favorite: boolean }>();
   @Output() addToSchedule = new EventEmitter<string>();
