@@ -1,0 +1,165 @@
+<main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-1">
+      <div class="bg-white dark:bg-zinc-900 p-6 rounded-lg border border-gray-200 dark:border-zinc-700">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Novo Tipo de Unidade</h2>
+
+        <form [formGroup]="unitForm" (ngSubmit)="submit()" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Nome <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              formControlName="name"
+              [disabled]="isSubmitting"
+              class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-sm focus:ring-primary focus:border-primary"
+              placeholder="Ex.: Gramas, Mililitros, Unidade"
+              [ngClass]="{
+                'border-red-500 focus:border-red-500 focus:ring-red-500': nameCtrl?.touched && nameCtrl?.invalid
+              }"
+            />
+            <div *ngIf="nameCtrl?.touched && nameCtrl?.invalid" class="mt-1 text-sm text-red-600">
+              <span *ngIf="nameCtrl?.errors?.['required']">Informe um nome.</span>
+              <span *ngIf="nameCtrl?.errors?.['minlength']">Mínimo de 2 caracteres.</span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Abreviação <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              formControlName="abbreviation"
+              [disabled]="isSubmitting"
+              class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-sm focus:ring-primary focus:border-primary"
+              placeholder="Ex.: g, ml, un, xíc"
+              [ngClass]="{
+                'border-red-500 focus:border-red-500 focus:ring-red-500': abbrCtrl?.touched && abbrCtrl?.invalid
+              }"
+            />
+            <div *ngIf="abbrCtrl?.touched && abbrCtrl?.invalid" class="mt-1 text-sm text-red-600">
+              <span *ngIf="abbrCtrl?.errors?.['required']">Informe a abreviação.</span>
+              <span *ngIf="abbrCtrl?.errors?.['minlength']">Mínimo de 1 caractere.</span>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            [disabled]="isSubmitting || unitForm.invalid"
+            class="inline-flex items-center justify-center w-full h-10 px-4 rounded-lg text-white bg-primary hover:bg-emerald-600 disabled:opacity-60"
+          >
+            <span class="material-symbols-outlined mr-2">save</span>
+            {{ isSubmitting ? 'Salvando...' : 'Salvar' }}
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="lg:col-span-2">
+      <div class="bg-white dark:bg-zinc-900 p-6 rounded-lg border border-gray-200 dark:border-zinc-700">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Tipos de Unidades</h2>
+        </div>
+
+        <ng-container *ngIf="!isLoading; else loading">
+          <ng-container *ngIf="units?.length; else empty">
+            <ul class="space-y-3">
+              <li *ngFor="let u of units; trackBy: trackById">
+                <div class="flex p-4 rounded-lg bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 items-center justify-between gap-3">
+                  <div class="flex-1 min-w-0" *ngIf="editingId !== u.id; else editMode">
+                    <p class="text-gray-900 dark:text-gray-100 font-medium truncate">
+                      {{ u.name }}
+                    </p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                      Abreviação: <span class="font-semibold">{{ u.abbreviation }}</span>
+                    </p>
+                  </div>
+
+                  <div class="flex items-center gap-2" *ngIf="editingId !== u.id">
+                    <button
+                      type="button"
+                      (click)="startEdit(u)"
+                      class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-700"
+                      title="Editar"
+                    >
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="delete(u)"
+                      class="p-2 rounded-full text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      title="Excluir"
+                    >
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </div>
+
+                  <ng-template #editMode>
+                    <div class="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        [(ngModel)]="editName"
+                        [ngModelOptions]="{ standalone: true }"
+                        class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary"
+                        placeholder="Nome"
+                      />
+                      <input
+                        type="text"
+                        [(ngModel)]="editAbbreviation"
+                        [ngModelOptions]="{ standalone: true }"
+                        class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary"
+                        placeholder="Abreviação"
+                      />
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        (click)="saveEdit(u)"
+                        class="p-2 rounded-full text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                        title="Salvar"
+                      >
+                        <span class="material-symbols-outlined">check</span>
+                      </button>
+                      <button
+                        type="button"
+                        (click)="cancelEdit()"
+                        class="p-2 rounded-full text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        title="Cancelar"
+                      >
+                        <span class="material-symbols-outlined">close</span>
+                      </button>
+                    </div>
+                  </ng-template>
+                </div>
+              </li>
+            </ul>
+          </ng-container>
+        </ng-container>
+
+        <ng-template #loading>
+          <ul class="space-y-3">
+            <li *ngFor="let n of [1,2,3,4,5,6]">
+              <div class="flex p-4 rounded-lg bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 items-center justify-between gap-3">
+                <app-skeleton [rows]="1" widthClass="w-1/3" heightClass="h-5"></app-skeleton>
+                <div class="flex gap-2">
+                  <app-skeleton [rows]="1" widthClass="w-8" heightClass="h-8"></app-skeleton>
+                  <app-skeleton [rows]="1" widthClass="w-8" heightClass="h-8"></app-skeleton>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </ng-template>
+
+        <ng-template #empty>
+          <div class="text-center py-12">
+            <span class="material-icons !text-6xl text-subtext-light dark:text-subtext-dark">straighten</span>
+            <p class="mt-3 text-lg font-medium text-text-light dark:text-text-dark">Nenhuma unidade cadastrada</p>
+            <p class="text-subtext-light dark:text-subtext-dark">Use o formulário ao lado para adicionar a primeira.</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</main>
