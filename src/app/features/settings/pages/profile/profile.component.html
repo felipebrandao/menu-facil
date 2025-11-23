@@ -1,0 +1,78 @@
+<main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+  <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+    <aside class="lg:col-span-4 xl:col-span-3">
+      <div class="bg-background-light dark:bg-background-dark p-6 rounded-xl border border-border-light dark:border-border-dark">
+        <div class="flex w-full flex-col gap-6 items-center text-center">
+          <div class="relative">
+            <div
+              class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-32"
+              [style.background-image]="'url(' + user.avatarUrl + ')'"
+              [attr.data-alt]="'Foto de perfil de ' + user.name">
+            </div>
+            <button
+              type="button"
+              class="absolute bottom-1 right-1 flex items-center justify-center size-8 bg-gray-100 dark:bg-gray-700 rounded-full border-2 border-white dark:border-background-dark hover:bg-gray-200 dark:hover:bg-gray-600"
+              aria-label="Trocar foto de perfil">
+              <span class="material-icons text-lg text-gray-600 dark:text-gray-300">photo_camera</span>
+            </button>
+          </div>
+
+          <div class="flex flex-col justify-center">
+            <p class="text-text-light dark:text-text-dark text-2xl font-bold leading-tight tracking-[-0.015em]">
+              {{ user.name }}
+            </p>
+            <p class="text-subtext-light dark:text-subtext-dark text-base">
+              {{ user.email }}
+            </p>
+          </div>
+
+          <div class="flex w-full flex-col gap-3">
+            <button
+              type="button"
+              class="flex items-center justify-center rounded-lg h-10 px-4 bg-background-light dark:bg-surface-dark text-text-light dark:text-text-dark text-sm font-bold w-full hover:bg-gray-100 dark:hover:bg-gray-800 border border-border-light dark:border-border-dark">
+              <span class="truncate">Editar Perfil</span>
+            </button>
+            <button
+              type="button"
+              class="flex items-center justify-center rounded-lg h-10 px-4 bg-primary/20 dark:bg-primary/30 text-primary text-sm font-bold w-full hover:bg-primary/30 dark:hover:bg-primary/40">
+              <span class="truncate">Sair</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <section class="lg:col-span-8 xl:col-span-9">
+      <div class="bg-background-light dark:bg-background-dark p-4 sm:p-6 rounded-xl border border-border-light dark:border-border-dark">
+        <h2 class="text-text-light dark:text-text-dark text-2xl font-bold leading-tight tracking-[-0.015em] px-4 pb-4 pt-2">
+          Management
+        </h2>
+
+        <div class="flex flex-col divide-y divide-border-light dark:divide-border-dark">
+          <a
+            *ngFor="let item of managementItems"
+            [routerLink]="item.link"
+            class="flex items-center gap-4 bg-background-light dark:bg-background-dark px-4 min-h-[72px] py-4 justify-between hover:bg-gray-50 dark:hover:bg-gray-900/50 rounded-lg transition-colors duration-200">
+            <div class="flex items-center gap-4">
+              <div class="text-text-light dark:text-text-dark flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 shrink-0 size-12">
+                <span class="material-icons">{{ item.icon }}</span>
+              </div>
+              <div class="flex flex-col justify-center">
+                <p class="text-text-light dark:text-text-dark text-base font-medium leading-normal line-clamp-1">
+                  {{ item.title }}
+                </p>
+                <p class="text-subtext-light dark:text-subtext-dark text-sm leading-normal line-clamp-2">
+                  {{ item.description }}
+                </p>
+              </div>
+            </div>
+            <div class="shrink-0 text-text-light dark:text-subtext-dark flex size-7 items-center justify-center">
+              <span class="material-icons">chevron_right</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
