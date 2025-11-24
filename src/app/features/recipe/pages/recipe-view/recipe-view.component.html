@@ -8,12 +8,14 @@
           <h1 class="text-white text-4xl md:text-5xl font-bold">{{ recipe.name }}</h1>
           <button
             class="flex-shrink-0 flex items-center justify-center size-12 rounded-full bg-white/20 text-white backdrop-blur-sm hover:bg-white/30">
-            <span class="material-icons text-3xl">favorite_border</span>
+            <span class="material-icons text-3xl" [ngClass]="{'text-red-500': recipe.highlighted}">
+              {{ recipe.highlighted ? 'favorite' : 'favorite_border' }}
+            </span>
           </button>
         </div>
       </div>
 
-      <div class="p-6 md:p-8 border border rounded-lg p-6">
+      <div class="p-6 md:p-8 border rounded-lg">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 ">
           <div class="md:col-span-2 flex flex-col gap-8">
             <div>
@@ -21,11 +23,11 @@
               <div class="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div>
                   <p class="text-sm font-medium text-text-light/80 dark:text-text-dark/80">Categoria</p>
-                  <p class="text-base font-semibold dark:text-text-dark/80">{{ recipe.category }}</p>
+                  <p class="text-base font-semibold dark:text-text-dark/80">{{ recipe.category?.name }}</p>
                 </div>
                 <div>
                   <p class="text-sm font-medium text-text-light/80 dark:text-text-dark/80">Tempo de Preparo</p>
-                  <p class="text-base font-semibold dark:text-text-dark/80">{{ recipe.prepTime }}</p>
+                  <p class="text-base font-semibold dark:text-text-dark/80">{{ recipe.totalTime }} min</p>
                 </div>
                 <div>
                   <p class="text-sm font-medium text-text-light/80 dark:text-text-dark/80">Tempo de Cozimento</p>
@@ -73,8 +75,8 @@
               <h2 class="text-2xl font-bold pb-4 mb-4 border-b">Ingredientes</h2>
               <div class="flex flex-col gap-4">
                 <div *ngFor="let ing of recipe.ingredients">
-                  <p class="text-base font-semibold">{{ ing.name }}</p>
-                  <p class="text-sm text-text-light/80 dark:text-text-dark/80">{{ ing.quantity + ' ' + ing.unit }}</p>
+                  <p class="text-base font-semibold">{{ ing.ingredientName }}</p>
+                  <p class="text-sm text-text-light/80 dark:text-text-dark/80">{{ ing.quantity + ' ' + ing.unitUsed }}</p>
                 </div>
               </div>
             </div>
