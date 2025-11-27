@@ -4,20 +4,14 @@ export interface IngredientSuggestion {
 }
 
 export interface RecipeIngredientResponse {
-  ingredient: {
-    id: string;
-    name: string;
-    category: {
-      id: string;
-      name: string;
-    };
-  };
-  unitUsed: {
-    id: string;
-    name: string;
-    abbreviation: string;
-  };
+  ingredientId: string;
+  ingredientName: string;
+  unitUsedId: string;
+  unitUsedName: string;
+  unitUsedAbbreviation: string;
   quantity: number;
+  defaultUnit: string;
+  quantityInDefaultUnit: number;
 }
 
 export interface CategoryIngredient {

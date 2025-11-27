@@ -50,6 +50,8 @@ export class RecipeIngredientsFormComponent implements OnInit, ControlValueAcces
     abbreviation: string
   }[] = [];
 
+  loading = false; // novo: controla exibição do skeleton
+
   private onChange = (_: any) => {};
   private onTouched = () => {};
 
@@ -71,11 +73,54 @@ export class RecipeIngredientsFormComponent implements OnInit, ControlValueAcces
     return this.ingredientsForm.controls as FormGroup[];
   }
 
-  writeValue(obj: RecipeIngredient[]): void {
+  writeValue(obj: any[]): void {
     this.ingredientsForm.clear();
-    if (obj && obj.length) {
-      obj.forEach(ing => this.ingredientsForm.push(this.fb.group({ ...ing })));
-    }
+
+    if (!obj || !obj.length) return;
+
+    obj.forEach((ing) => {
+
+      const mapped = {
+        id: ing.ingredientId ?? ing.id,
+        name: ing.ingredientName ?? ing.name,
+        quantity: ing.quantity,
+        unit: ing.unitUsedId ?? ing.unit,
+        unitName: ing.unitUsed ?? ing.unitName,
+        abbreviation: ing.unitUsedAbbreviation ?? ing.abbreviation
+      };
+
+      const group = this.fb.group(mapped);
+      this.ingredientsForm.push(group);
+
+      // Carrega unidades do ingrediente
+      if (mapped.id) {
+        this.loading = true;
+        this.ingredientService.getById(mapped.id).subscribe({
+          next: (ingredient) => {
+            const units = ingredient.conversions.map((c: any) => ({
+              id: c.toUnit.id,
+              name: c.toUnit.name,
+              abbreviation: c.toUnit.abbreviation
+            }));
+
+            const unitExists = units.some((u: any) => u.id === mapped.unit);
+            const finalUnit = unitExists ? mapped.unit : units[0]?.id;
+
+            group.patchValue({
+              unit: finalUnit,
+              unitName: units.find((u: any) => u.id === finalUnit)?.name ?? null,
+              abbreviation: units.find((u: any) => u.id === finalUnit)?.abbreviation ?? null
+            });
+
+            this.loading = false;
+          },
+          error: (err) => {
+            console.error("Erro carregando ingrediente no writeValue:", err);
+            this.loading = false;
+          },
+        });
+      }
+    });
   }
 
   registerOnChange(fn: any): void {
@@ -174,16 +219,16 @@ export class RecipeIngredientsFormComponent implements OnInit, ControlValueAcces
   }
 
   saveEdit(i: number) {
-      const control = this.ingredientsForm.at(i);
-      if (control) {
-        control.patchValue({
-          ...this.editIngredient,
-          unitName: this.availableUnits.find(u => u.id === this.editIngredient.unit)?.name
-        });
-        this.emitChange();
-      }
-      this.editIndex = null;
-      this.editIngredient = { id: undefined, name: '', quantity: 1, unit: '' };
+    const control = this.ingredientsForm.at(i);
+    if (control) {
+      control.patchValue({
+        ...this.editIngredient,
+        unitName: this.availableUnits.find(u => u.id === this.editIngredient.unit)?.name
+      });
+      this.emitChange();
+    }
+    this.editIndex = null;
+    this.editIngredient = { id: undefined, name: '', quantity: 1, unit: '' };
   }
 
   cancelEdit() {
@@ -197,6 +242,7 @@ export class RecipeIngredientsFormComponent implements OnInit, ControlValueAcces
   }
 
   private loadUnitsForIngredient(id: string, currentUnit?: string, applyToEdit = false) {
+    this.loading = true;
     this.ingredientService.getById(id).subscribe({
       next: (ingredient) => {
         const units = [
@@ -219,15 +265,18 @@ export class RecipeIngredientsFormComponent implements OnInit, ControlValueAcces
         } else {
           this.ingredientForm.patchValue({ unit: defaultUnit });
         }
+        this.loading = false;
       },
       error: (err) => {
         console.error("Erro ao carregar ingrediente", err);
         this.availableUnits = [];
+        this.loading = false;
       }
     });
   }
 
-  getUnitAbbreviation(id: string): string {
-    return this.availableUnits.find(u => u.id === id)?.abbreviation ?? '';
+  getUnitAbbreviation(index: number): string {
+    return this.ingredientsForm.at(index)?.get('abbreviation')?.value ?? '';
   }
+
 }

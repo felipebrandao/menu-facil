@@ -64,10 +64,20 @@ export class RecipeComponent implements OnInit {
       this.recipeService.getRecipeById(id).subscribe(recipe => {
         if (!recipe) return;
         this.lastRecipeId = id;
+
+        const convertedIngredients = recipe.ingredients.map(ing => ({
+          id: ing.ingredientId,
+          name: ing.ingredientName,
+          unit: ing.unitUsedId,
+          unitName: ing.unitUsedName,
+          abbreviation: ing.unitUsedAbbreviation,
+          quantity: ing.quantity
+        }));
+
         this.form.patchValue({
           recipeName: recipe.name,
-          category: recipe.category,
-          ingredients: recipe.ingredients || [],
+          category: recipe.category.id,
+          ingredients: convertedIngredients,
           totalTime: recipe.totalTime,
           highlighted: recipe.highlighted || false
         });
@@ -121,7 +131,7 @@ export class RecipeComponent implements OnInit {
 
     const recipePayload = {
       name: this.form.value.recipeName,
-      categoryId: this.form.value.category.id,
+      categoryId: this.form.value.category,
       ingredients: this.form.value.ingredients.map((i: any) => ({
         ingredientId: i.id,
         unitUsedId: i.unit,
