@@ -1,17 +1,16 @@
-import {Component, Inject, OnInit, Optional, Input, Output, EventEmitter} from '@angular/core';
+import {Component, EventEmitter, Inject, Input, OnInit, Optional, Output} from '@angular/core';
 import {
   FormArray,
   FormBuilder,
-  FormGroup,
-  Validators,
   FormControl,
+  FormGroup,
+  FormsModule,
   ReactiveFormsModule,
-  FormsModule
+  Validators
 } from '@angular/forms';
-import {IngredientService} from '../../services/ingredient.service';
 import {UnitService} from '../../services/unit.service';
 import {CategoriesIngredientService} from '../../services/categories-ingredient.service';
-import {MatDialogRef, MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
+import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {CommonModule} from '@angular/common';
 import {IngredientFormData} from '../../mappers/ingredient.mapper';
 import {SkeletonComponent} from '../skeleton/skeleton.component';
@@ -67,7 +66,6 @@ export class NewIngredientModalComponent implements OnInit {
     @Optional() private dialogRef?: MatDialogRef<NewIngredientModalComponent>,
     private categoriesIngredientService?: CategoriesIngredientService,
     private unitService?: UnitService,
-    private ingredientService?: IngredientService,
     @Optional() @Inject(MAT_DIALOG_DATA) public injectedData?: any
   ) {
   }
@@ -90,7 +88,7 @@ export class NewIngredientModalComponent implements OnInit {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
       category: ['', Validators.required],
-      unit: ['', Validators.required],
+      defaultUnit: ['', Validators.required],
       conversions: this.fb.array([]),
     });
   }
@@ -155,7 +153,7 @@ export class NewIngredientModalComponent implements OnInit {
     this.form.patchValue({
       name: fd.name ?? '',
       category: categoryVal,
-      unit: unitVal,
+      defaultUnit: unitVal,
     });
 
     if (fd.conversions?.length) {
@@ -203,7 +201,7 @@ export class NewIngredientModalComponent implements OnInit {
       id: this._formData?.id || undefined,
       name: this.form.value.name,
       category: this.form.value.category || undefined,
-      unit: this.form.value.unit || undefined,
+      defaultUnit: this.form.value.defaultUnit || undefined,
       conversions: (this.form.value.conversions ?? []).map((c: any) => ({
         toUnit: c.toUnit,
         factor: Number(c.factor),

@@ -164,7 +164,6 @@ export class ScheduleComponent implements OnInit {
     );
   }
 
-  // handlers chamados pelos filhos
   addToDay(recipe: RecipeSummary, dayIndex: number) {
     const dateKey = this.formatKey(this.week[dayIndex].date);
     this.scheduleService.addRecipe(dateKey, recipe.id).subscribe(() => this.loadWeekly());
@@ -201,11 +200,10 @@ export class ScheduleComponent implements OnInit {
     });
   }
 
-    // helpers
   private startOfWeek(d: Date): Date {
     const c = new Date(d);
-    const day = c.getDay(); // 0..6 (Domingo..Sábado)
-    c.setDate(c.getDate() - day); // começa no Domingo
+    const day = c.getDay();
+    c.setDate(c.getDate() - day);
     c.setHours(0, 0, 0, 0);
     return c;
   }
@@ -244,18 +242,14 @@ export class ScheduleComponent implements OnInit {
     const arr = this.scheduledMap[dateKey] ?? [];
     const removed = arr.splice(itemIndex, 1)[0];
 
-    // Força detecção de mudanças
     this.scheduledMap = { ...this.scheduledMap, [dateKey]: [...arr] };
 
-    // Mantém IDs de agendamento alinhados ao array visual
     const scheduledId = this.scheduledIdsMap[dateKey]?.splice(itemIndex, 1)?.[0];
 
-    // Chama o backend para excluir (se existir ID)
     if (scheduledId) {
       this.scheduleService.deleteRecipe(scheduledId).subscribe({
         next: () => {},
         error: () => {
-          // rollback simples em caso de erro
           const rollback = this.scheduledMap[dateKey] ?? [];
           rollback.splice(itemIndex, 0, removed);
           this.scheduledMap = { ...this.scheduledMap, [dateKey]: [...rollback] };
@@ -293,7 +287,6 @@ export class ScheduleComponent implements OnInit {
     if (!dateKey || idx === undefined || idx === null) return;
 
     const scheduledId = this.scheduledIdsMap[dateKey]?.[idx];
-    // se existe id no mapa, chama backend (service) para remover
     if (scheduledId) {
       this.scheduleService.deleteRecipe(scheduledId).subscribe(() => {
         this.closeScheduledModal();
@@ -303,7 +296,6 @@ export class ScheduleComponent implements OnInit {
         this.refreshPeriod();
       });
     } else {
-      // fallback: remove visualmente da scheduledMap e atualiza
       const arr = this.scheduledMap[dateKey] ?? [];
       arr.splice(idx, 1);
       this.scheduledMap = { ...this.scheduledMap, [dateKey]: [...arr] };

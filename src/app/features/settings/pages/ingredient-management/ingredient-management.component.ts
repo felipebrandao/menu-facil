@@ -67,7 +67,7 @@ export class IngredientManagementComponent implements OnInit {
     this.modalFormData = {
       name: '',
       category: undefined,
-      unit: undefined,
+      defaultUnit: undefined,
       conversions: []
     };
     this.modalOpen = true;
@@ -75,11 +75,11 @@ export class IngredientManagementComponent implements OnInit {
 
   openEditModal(id: string) {
     this.modalFormData = null;
-    this.modalOpen = true;
 
     this.ingredientService.getById(id).subscribe({
       next: (item) => {
         this.modalFormData = IngredientMapper.toFormData(item);
+        this.modalOpen = true;
       },
       error: () => {
         this.modalFormData = null;
@@ -102,7 +102,6 @@ export class IngredientManagementComponent implements OnInit {
 
     req$.subscribe({
       next: saved => {
-        // Atualizar lista local
         if (data.id) {
           this.ingredients = this.ingredients.map(i => i.id === saved.id ? saved : i);
         } else {

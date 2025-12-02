@@ -1,11 +1,11 @@
-import { IngredientCreateRequest, IngredientResponse } from '../models/ingredient.model';
+import {IngredientCreateRequest, IngredientResponse, Unit} from '../models/ingredient.model';
 
 export interface IngredientFormData {
   id?: string;
   name: string;
   category?: string;
-  unit?: string;
-  conversions?: { toUnit: string; factor: number }[];
+  defaultUnit?: Unit;
+  conversions?: { toUnit: Unit; factor: number }[];
 }
 
 export const IngredientMapper = {
@@ -15,22 +15,22 @@ export const IngredientMapper = {
       id: api.id,
       name: api.name,
       category: api.category?.id,
-      unit: api.defaultUnit?.id,
+      defaultUnit: api.defaultUnit,
       conversions: api.conversions?.map(c => ({
-        toUnit: c.toUnit.id,
+        toUnit: c.toUnit,
         factor: c.factor
       })) ?? []
     };
   },
 
-  /** Converte dados do formulário → payload para criar/editar ingrediente */
+  /** Converte dados do formulário → payload para acriar/editar ingrediente */
   toApiPayload(form: IngredientFormData): IngredientCreateRequest {
     return {
       name: form.name,
-      category: { id: form.category ?? '' },
-      defaultUnit: { id: form.unit ?? '' },
+      category: form.category ?? '' ,
+      defaultUnit: form.defaultUnit!,
       conversions: (form.conversions ?? []).map(c => ({
-        toUnit: { id: c.toUnit },
+        toUnit: c.toUnit,
         factor: c.factor
       }))
     };

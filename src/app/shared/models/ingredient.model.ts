@@ -27,10 +27,10 @@ export interface Unit {
 
 export interface IngredientCreateRequest {
   name: string;
-  category: { id: string };
-  defaultUnit: { id: string };
+  category: string;
+  defaultUnit: Unit;
   conversions: {
-    toUnit: { id: string };
+    toUnit: Unit;
     factor: number;
   }[];
 }

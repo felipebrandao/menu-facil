@@ -47,7 +47,7 @@
 
         <select
           id="default-unit"
-          formControlName="unit"
+          formControlName="defaultUnit"
           class="form-select w-full rounded-md border-border-light dark:border-border-dark
                  bg-background-light dark:bg-background-dark focus:border-primary focus:ring-primary text-sm">
           <option value="">Selecione</option>
@@ -116,7 +116,7 @@
         <span class="font-semibold">
           1 {{ unitLabel(conv.get('toUnit')?.value) }}
         </span>
-              = {{ conv.get('factor')?.value }} {{ unitLabel(form.get('unit')?.value) || 'unid.' }}
+              = {{ conv.get('factor')?.value }} {{ unitLabel(form.get('defaultUnit')?.value) || 'unid.' }}
             </p>
 
             <button type="button"
