@@ -7,13 +7,14 @@ import {
   MonthlyResponse,
   ScheduledRecipe
 } from '../models/schedule.models';
+import {environment} from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ScheduleService {
 
-  private apiUrl = '/api/schedule';
+  private apiUrl = environment.apiUrl + '/api/schedule';
 
   constructor(private http: HttpClient) {}
 

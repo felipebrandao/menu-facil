@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import {Unit} from '../models/ingredient.model';
 import {HttpClient} from '@angular/common/http';
 import {map, Observable} from 'rxjs';
+import {environment} from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UnitService {
-  private apiUrl = '/api/units';
+  private apiUrl = environment.apiUrl + '/api/units';
 
   constructor(private http: HttpClient) {}
 
