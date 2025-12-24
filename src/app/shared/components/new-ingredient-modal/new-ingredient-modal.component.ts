@@ -14,6 +14,10 @@ import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/
 import {CommonModule} from '@angular/common';
 import {IngredientFormData} from '../../mappers/ingredient.mapper';
 import {SkeletonComponent} from '../skeleton/skeleton.component';
+import { SuccessModalComponent } from '../success-modal/success-modal.component';
+import { ErrorModalComponent } from '../error-modal/error-modal.component';
+import { IngredientService } from '../../services/ingredient.service';
+import { IngredientMapper } from '../../mappers/ingredient.mapper';
 
 @Component({
   selector: 'app-new-ingredient-modal',
@@ -23,7 +27,9 @@ import {SkeletonComponent} from '../skeleton/skeleton.component';
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
-    SkeletonComponent
+    SkeletonComponent,
+    SuccessModalComponent,
+    ErrorModalComponent
   ],
   templateUrl: './new-ingredient-modal.component.html',
 })
@@ -61,11 +67,19 @@ export class NewIngredientModalComponent implements OnInit {
 
   isSaving = false;
 
+  showSuccessModal = false;
+  showErrorModal = false;
+  errorMessage = '';
+  errorDetails = '';
+
+  private _savedIngredient?: any;
+
   constructor(
     private fb: FormBuilder,
     @Optional() private dialogRef?: MatDialogRef<NewIngredientModalComponent>,
     private categoriesIngredientService?: CategoriesIngredientService,
     private unitService?: UnitService,
+    private ingredientService?: IngredientService,
     @Optional() @Inject(MAT_DIALOG_DATA) public injectedData?: any
   ) {
   }
@@ -82,6 +96,31 @@ export class NewIngredientModalComponent implements OnInit {
     }
 
     if (this._formData) this.patchForm();
+
+    this.form.get('defaultUnit')?.valueChanges.subscribe(unitId => {
+      if (unitId) {
+        this.ensureDefaultUnitConversion(unitId);
+      }
+    });
+  }
+
+  private ensureDefaultUnitConversion(defaultUnitId: string) {
+    const existingIndex = this.conversions.controls.findIndex(
+      c => c.get('toUnit')?.value === defaultUnitId
+    );
+
+    if (existingIndex === -1) {
+      this.conversions.insert(0, this.fb.group({
+        toUnit: [defaultUnitId, Validators.required],
+        factor: [1, Validators.required],
+        isDefault: [true] // Flag para identificar
+      }));
+    } else {
+      this.conversions.at(existingIndex).patchValue({
+        factor: 1,
+        isDefault: true
+      });
+    }
   }
 
   createForm() {
@@ -156,17 +195,30 @@ export class NewIngredientModalComponent implements OnInit {
       defaultUnit: unitVal,
     });
 
+    if (unitVal) {
+      this.conversions.push(
+        this.fb.group({
+          toUnit: [unitVal, Validators.required],
+          factor: [1, Validators.required],
+          isDefault: [true]
+        })
+      );
+    }
+
     if (fd.conversions?.length) {
       fd.conversions.forEach((c: any) => {
         const toUnit = typeof c.toUnit === 'string' ? c.toUnit : c.toUnit?.id ?? c.toUnit ?? '';
         const factor = c.factor ?? 0;
 
-        this.conversions.push(
-          this.fb.group({
-            toUnit: [toUnit, Validators.required],
-            factor: [factor, Validators.required],
-          })
-        );
+        if (toUnit !== unitVal) {
+          this.conversions.push(
+            this.fb.group({
+              toUnit: [toUnit, Validators.required],
+              factor: [factor, Validators.required],
+              isDefault: [false]
+            })
+          );
+        }
       });
     }
   }
@@ -185,7 +237,15 @@ export class NewIngredientModalComponent implements OnInit {
   }
 
   removeConversion(index: number) {
+    const conversion = this.conversions.at(index);
+    if (conversion.get('isDefault')?.value === true) {
+      return;
+    }
     this.conversions.removeAt(index);
+  }
+
+  isDefaultConversion(index: number): boolean {
+    return this.conversions.at(index)?.get('isDefault')?.value === true;
   }
 
   unitLabel(unitId: string) {
@@ -194,7 +254,7 @@ export class NewIngredientModalComponent implements OnInit {
   }
 
   save() {
-    if (this.form.invalid) return;
+    if (this.form.invalid || !this.ingredientService) return;
     this.isSaving = true;
 
     const formData: IngredientFormData = {
@@ -208,13 +268,25 @@ export class NewIngredientModalComponent implements OnInit {
       })),
     };
 
-    if (this.dialogRef) {
-      this.dialogRef.close(formData);
-    } else {
-      this.saved.emit(formData);
-    }
+    const payload = IngredientMapper.toApiPayload(formData);
 
-    this.isSaving = false;
+    const req$ = formData.id
+      ? this.ingredientService.update(formData.id, payload)
+      : this.ingredientService.create(payload);
+
+    req$.subscribe({
+      next: (savedIngredient) => {
+        this.isSaving = false;
+        this.showSuccessModal = true;
+        this._savedIngredient = savedIngredient;
+      },
+      error: (error) => {
+        this.isSaving = false;
+        this.errorMessage = 'Erro ao salvar ingrediente';
+        this.errorDetails = error?.error?.message || 'Ocorreu um erro inesperado. Tente novamente.';
+        this.showErrorModal = true;
+      }
+    });
   }
 
   cancel() {
@@ -224,4 +296,28 @@ export class NewIngredientModalComponent implements OnInit {
       this.closed.emit(false);
     }
   }
+
+  handleSuccessClose() {
+    this.showSuccessModal = false;
+
+    if (this.dialogRef) {
+      this.dialogRef.close({
+        success: true,
+        data: this._savedIngredient
+      });
+    } else {
+      this.saved.emit(this._savedIngredient);
+    }
+  }
+
+  handleErrorRetry() {
+    this.showErrorModal = false;
+    this.save();
+  }
+
+  handleErrorCancel() {
+    this.showErrorModal = false;
+    this.isSaving = false;
+  }
+
 }

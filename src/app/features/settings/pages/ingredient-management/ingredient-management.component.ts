@@ -93,25 +93,19 @@ export class IngredientManagementComponent implements OnInit {
     this.modalFormData = null;
   }
 
-  onModalSaved(data: IngredientFormData) {
-    const payload = IngredientMapper.toApiPayload(data);
+  onModalSaved(savedIngredient: any) {
+    const isUpdate = savedIngredient.id && this.ingredients.some(i => i.id === savedIngredient.id);
 
-    const req$ = data.id
-      ? this.ingredientService.update(data.id, payload)
-      : this.ingredientService.create(payload);
+    if (isUpdate) {
+      this.ingredients = this.ingredients.map(i =>
+        i.id === savedIngredient.id ? savedIngredient : i
+      );
+    } else {
+      this.ingredients = [savedIngredient, ...this.ingredients];
+    }
 
-    req$.subscribe({
-      next: saved => {
-        if (data.id) {
-          this.ingredients = this.ingredients.map(i => i.id === saved.id ? saved : i);
-        } else {
-          this.ingredients = [saved, ...this.ingredients];
-        }
-
-        this.applyFilter();
-        this.closeModal();
-      }
-    });
+    this.applyFilter();
+    this.closeModal();
   }
 
   delete(item: IngredientResponse) {

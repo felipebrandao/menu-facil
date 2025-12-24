@@ -1,21 +1,17 @@
 <ng-container *ngFor="let _ of rowsArray; let i = index">
   <div
     role="status"
-    class="overflow-hidden"
-    [ngClass]="[
-          animated ? 'animate-pulse' : '',
-          'flex items-center'
-        ]"
+    class="overflow-hidden flex items-center"
+    [ngClass]="animated ? 'animate-pulse' : ''"
   >
     <div
       [ngClass]="[
-            baseBg,
-            rounded ? 'rounded-lg' : 'rounded',
-            widthClass,
-            heightClass
-          ]"
+        baseBg,
+        rounded ? 'rounded-lg' : 'rounded',
+        randomWidth ? getWidthClass(i) : widthClass,
+        heightClass
+      ]"
       [style.marginTop.px]="i === 0 ? 0 : gap"
     ></div>
   </div>
 </ng-container>
-

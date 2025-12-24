@@ -4,19 +4,12 @@
       <span class="material-symbols-outlined text-white text-4xl">check</span>
     </div>
     <h2 class="text-xl font-bold text-text-light dark:text-text-dark mb-4">{{ title }}</h2>
-    <div class="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 mt-6">
-      <button
-        class="flex-1 inline-flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-        (click)="view.emit()"
-      >
-        Ver Receita
-      </button>
-      <button
-        class="flex-1 inline-flex justify-center items-center py-2 px-4 border border-border-light dark:border-border-dark rounded-md shadow-sm text-sm font-medium text-text-light dark:text-text-dark bg-surface-light dark:bg-surface-dark hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-        (click)="back.emit()"
-      >
-        Voltar para Minhas Receitas
-      </button>
-    </div>
+    <p *ngIf="message" class="text-sm text-gray-600 dark:text-gray-400 mb-6">{{ message }}</p>
+    <button
+      class="w-full inline-flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+      (click)="close.emit()"
+    >
+      {{ buttonText }}
+    </button>
   </div>
 </div>

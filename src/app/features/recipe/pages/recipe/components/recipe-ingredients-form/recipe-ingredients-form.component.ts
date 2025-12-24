@@ -50,7 +50,9 @@ export class RecipeIngredientsFormComponent implements OnInit, ControlValueAcces
     abbreviation: string
   }[] = [];
 
-  loading = false; // novo: controla exibição do skeleton
+  loading = false;
+
+  ingredientModalFormData: any = null;
 
   private onChange = (_: any) => {};
   private onTouched = () => {};
@@ -154,17 +156,21 @@ export class RecipeIngredientsFormComponent implements OnInit, ControlValueAcces
     this.showIngredientModal = true;
   }
 
-  onIngredientModalSaved(event: { id?: string, name: string }) {
-    this.ingredientForm.patchValue({ id: event.id, name: event.name });
+  onIngredientModalSaved(savedIngredient: any) {
+    this.ingredientForm.patchValue({
+      id: savedIngredient.id,
+      name: savedIngredient.name
+    }, { emitEvent: false });
     this.showIngredientModal = false;
 
-    if (event.id) {
-      this.onIngredientSelected(event);
+    if (savedIngredient.id) {
+      this.loadUnitsForIngredient(savedIngredient.id, this.ingredientForm.value.unit, false);
     }
   }
 
   onIngredientModalClosed() {
     this.showIngredientModal = false;
+    this.ingredientModalFormData = null;
   }
 
   addIngredient() {
@@ -224,7 +230,7 @@ export class RecipeIngredientsFormComponent implements OnInit, ControlValueAcces
       control.patchValue({
         ...this.editIngredient,
         unitName: this.availableUnits.find(u => u.id === this.editIngredient.unit)?.name
-      });
+      }, { emitEvent: false });
       this.emitChange();
     }
     this.editIndex = null;
@@ -277,6 +283,35 @@ export class RecipeIngredientsFormComponent implements OnInit, ControlValueAcces
 
   getUnitAbbreviation(index: number): string {
     return this.ingredientsForm.at(index)?.get('abbreviation')?.value ?? '';
+  }
+
+  openEditIngredientModal() {
+    const ingredientId = this.ingredientForm.value.id;
+
+    if (!ingredientId) return;
+
+    this.loading = true;
+    this.ingredientService.getById(ingredientId).subscribe({
+      next: (ingredient) => {
+        this.ingredientModalFormData = {
+          id: ingredient.id,
+          name: ingredient.name,
+          category: ingredient.category?.id,
+          defaultUnit: ingredient.defaultUnit,
+          conversions: ingredient.conversions?.map((c: any) => ({
+            toUnit: c.toUnit,
+            factor: c.factor
+          })) ?? []
+        };
+
+        this.showIngredientModal = true;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error("Erro ao carregar ingrediente para edição:", err);
+        this.loading = false;
+      }
+    });
   }
 
 }

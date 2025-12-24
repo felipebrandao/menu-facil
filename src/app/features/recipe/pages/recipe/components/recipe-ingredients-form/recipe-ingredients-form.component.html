@@ -12,9 +12,20 @@
           (selected)="onIngredientSelected($event)"
           (register)="openNewIngredientModal($event)">
         </app-ingredient-autocomplete>
+
+        <button
+          *ngIf="ingredientForm.value.id"
+          type="button"
+          class="h-10 w-10 flex items-center justify-center bg-blue-100 dark:bg-blue-900 rounded-md
+             hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+          (click)="openEditIngredientModal()"
+          title="Editar ingrediente">
+          <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">edit</span>
+        </button>
+
         <button type="button"
                 class="h-10 w-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-md
-               hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                   hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                 (click)="openNewIngredientModal('')"
                 title="Novo ingrediente">
           <span class="material-symbols-outlined">add</span>
@@ -123,8 +134,9 @@
   </div>
   <app-new-ingredient-modal
     *ngIf="showIngredientModal"
-    [formData]="{ id: undefined, name: ingredientForm.value.name }"
+    [formData]="ingredientForm.value.id ? ingredientModalFormData : { id: undefined, name: ingredientForm.value.name }"
     (saved)="onIngredientModalSaved($event)"
     (closed)="onIngredientModalClosed()">
   </app-new-ingredient-modal>
+
 </div>

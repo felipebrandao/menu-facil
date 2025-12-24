@@ -15,9 +15,17 @@ export class SkeletonComponent {
   @Input() rounded = true;
   @Input() gap = 12;
   @Input() animated = true;
-  @Input() baseBg = 'bg-gray-200 dark:bg-gray-700';
+  @Input() baseBg = 'bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700';
+  @Input() randomWidth = false;
 
   get rowsArray() {
     return Array.from({length: Math.max(1, Math.floor(this.rows))});
+  }
+
+  getWidthClass(index: number): string {
+    if (!this.randomWidth) return this.widthClass;
+
+    const widths = ['w-full', 'w-11/12', 'w-5/6', 'w-3/4'];
+    return widths[index % widths.length];
   }
 }
