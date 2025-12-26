@@ -19,4 +19,11 @@ export class HeaderComponent {
     this.isDarkMode = !this.isDarkMode;
     document.documentElement.classList.toggle('dark', this.isDarkMode);
   }
+
+  closeSidebar() {
+    const checkbox = document.getElementById('sidebar-toggle') as HTMLInputElement;
+    if (checkbox) {
+      checkbox.checked = false;
+    }
+  }
 }
