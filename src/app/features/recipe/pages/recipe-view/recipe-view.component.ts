@@ -8,6 +8,9 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
+import { ErrorModalComponent } from '../../../../shared/components/error-modal/error-modal.component';
+import { SuccessModalComponent } from '../../../../shared/components/success-modal/success-modal.component';
+import { ConfirmationModalComponent } from '../../../../shared/components/confirmation-modal/confirmation-modal.component';
 
 @Component({
   selector: 'app-recipe-view',
@@ -17,7 +20,10 @@ import { SkeletonComponent } from '../../../../shared/components/skeleton/skelet
     NgClass,
     CommonModule,
     FormsModule,
-    SkeletonComponent
+    SkeletonComponent,
+    ErrorModalComponent,
+    SuccessModalComponent,
+    ConfirmationModalComponent
   ],
   standalone: true
 })
@@ -35,6 +41,16 @@ export class RecipeViewComponent implements AfterViewInit, OnDestroy, OnInit {
     rating: 5,
     comment: ''
   };
+
+  showSuccessModal = false;
+  showErrorModal = false;
+  successTitle = '';
+  successMessage = '';
+  errorMessage = '';
+  errorDetails = '';
+  showConfirmationModal = false;
+  confirmationTitle = '';
+  confirmationMessage = '';
 
   @ViewChild('swiperContainer', {static: false}) swiperContainer!: ElementRef<HTMLDivElement>;
   private swiperInstance?: Swiper;
@@ -166,5 +182,51 @@ export class RecipeViewComponent implements AfterViewInit, OnDestroy, OnInit {
     this.router.navigate(['/recipes/edit', id]).then(() => {
       setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
     });
+  }
+
+  deleteRecipe(id?: string) {
+    if (!id) return;
+
+    this.confirmationTitle = 'Excluir Receita';
+    this.confirmationMessage = 'Tem certeza que deseja excluir esta receita? Esta ação não pode ser desfeita.';
+    this.showConfirmationModal = true;
+  }
+
+  onConfirmDelete() {
+    this.showConfirmationModal = false;
+
+    if (!this.recipe?.id) return;
+
+    this.recipeService.deleteRecipe(this.recipe.id).subscribe({
+      next: () => {
+        this.successTitle = 'Receita excluída!';
+        this.successMessage = 'Você será redirecionado para a lista de receitas.';
+        this.showSuccessModal = true;
+      },
+      error: (err) => {
+        console.error('Erro ao excluir receita:', err);
+        this.errorMessage = 'Erro ao excluir receita';
+        this.errorDetails = err?.error?.message || 'Ocorreu um erro inesperado. Tente novamente.';
+        this.showErrorModal = true;
+      }
+    });
+  }
+
+  onCancelDelete() {
+    this.showConfirmationModal = false;
+  }
+
+  onSuccessModalClose() {
+    this.showSuccessModal = false;
+    this.router.navigate(['/my-recipes']);
+  }
+
+  onErrorModalRetry() {
+    this.showErrorModal = false;
+    this.deleteRecipe(this.recipe?.id);
+  }
+
+  onErrorModalCancel() {
+    this.showErrorModal = false;
   }
 }

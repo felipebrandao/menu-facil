@@ -98,6 +98,13 @@
                 <span class="material-symbols-outlined">share</span>
                 <span>Compartilhar Receita</span>
               </button>
+              <button
+                (click)="deleteRecipe(recipe.id)"
+                class="flex w-full items-center justify-center rounded-lg h-12 px-4 bg-red-500/20 dark:bg-red-500/30 text-red-600 dark:text-red-400 font-bold gap-2 hover:bg-red-500/30 dark:hover:bg-red-500/40 transition-colors"
+              >
+                <span class="material-symbols-outlined">delete</span>
+                <span>Excluir Receita</span>
+              </button>
             </div>
           </div>
         </div>
@@ -223,3 +230,29 @@
     </div>
   </main>
 </ng-template>
+
+<app-success-modal
+  *ngIf="showSuccessModal"
+  [title]="successTitle"
+  [message]="successMessage"
+  (close)="onSuccessModalClose()"
+></app-success-modal>
+
+<app-error-modal
+  *ngIf="showErrorModal"
+  [message]="errorMessage"
+  [details]="errorDetails"
+  (retry)="onErrorModalRetry()"
+  (cancel)="onErrorModalCancel()"
+></app-error-modal>
+
+<app-confirmation-modal
+  *ngIf="showConfirmationModal"
+  [title]="confirmationTitle"
+  [message]="confirmationMessage"
+  [isDangerous]="true"
+  confirmText="Excluir"
+  cancelText="Cancelar"
+  (confirm)="onConfirmDelete()"
+  (cancel)="onCancelDelete()"
+></app-confirmation-modal>
