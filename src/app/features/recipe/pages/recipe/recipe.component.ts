@@ -1,7 +1,7 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {RecipeIngredientsFormComponent} from './components/recipe-ingredients-form/recipe-ingredients-form.component';
+import { RecipeIngredientsFormComponent } from './components/recipe-ingredients-form/recipe-ingredients-form.component';
 import {RecipeService} from '../../../../shared/services/recipe.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {SuccessModalComponent} from '../../../../shared/components/success-modal/success-modal.component';
@@ -11,6 +11,8 @@ import {RecipeImagesComponent} from './components/recipe-images/recipe-images.co
 import {NewCategoryModalComponent} from '../../../../shared/components/new-category-modal/new-category-modal.component';
 import {RecipeCategory} from '../../../../shared/models/recipe.model';
 import {RecipeCategoryService} from '../../../../shared/services/recipe-category.service';
+import {SkeletonComponent} from '../../../../shared/components/skeleton/skeleton.component';
+import {NewIngredientModalComponent} from '../../../../shared/components/new-ingredient-modal/new-ingredient-modal.component';
 
 @Component({
   selector: 'app-recipe',
@@ -23,7 +25,9 @@ import {RecipeCategoryService} from '../../../../shared/services/recipe-category
     ErrorModalComponent,
     RecipeInstructionsComponent,
     RecipeImagesComponent,
-    NewCategoryModalComponent
+    NewCategoryModalComponent,
+    SkeletonComponent,
+    NewIngredientModalComponent
   ],
   templateUrl: './recipe.component.html',
   styleUrls: ['./recipe.component.css']
@@ -38,6 +42,12 @@ export class RecipeComponent implements OnInit {
   ingredientError: string = '';
   showErrorModal = false;
   showCategoryModal = false;
+  loading = false;
+  showIngredientModal = false;
+  ingredientModalFormData: any = null;
+
+  @ViewChild(RecipeIngredientsFormComponent)
+  ingredientsFormComponent!: RecipeIngredientsFormComponent;
 
   constructor(
     private fb: FormBuilder,
@@ -61,30 +71,38 @@ export class RecipeComponent implements OnInit {
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.recipeService.getRecipeById(id).subscribe(recipe => {
-        if (!recipe) return;
-        this.lastRecipeId = id;
+      this.loading = true;
+      this.recipeService.getRecipeById(id).subscribe({
+        next: (recipe) => {
+          if (!recipe) return;
+          this.lastRecipeId = id;
 
-        const convertedIngredients = recipe.ingredients.map(ing => ({
-          id: ing.ingredientId,
-          name: ing.ingredientName,
-          unit: ing.unitUsedId,
-          unitName: ing.unitUsedName,
-          abbreviation: ing.unitUsedAbbreviation,
-          quantity: ing.quantity
-        }));
+          const convertedIngredients = recipe.ingredients.map(ing => ({
+            id: ing.ingredientId,
+            name: ing.ingredientName,
+            unit: ing.unitUsedId,
+            unitName: ing.unitUsedName,
+            abbreviation: ing.unitUsedAbbreviation,
+            quantity: ing.quantity
+          }));
 
-        this.form.patchValue({
-          recipeName: recipe.name,
-          category: recipe.category.id,
-          ingredients: convertedIngredients,
-          totalTime: recipe.totalTime,
-          highlighted: recipe.highlighted || false
-        });
+          this.form.patchValue({
+            recipeName: recipe.name,
+            category: recipe.category.id,
+            ingredients: convertedIngredients,
+            totalTime: recipe.totalTime,
+            highlighted: recipe.highlighted || false
+          });
 
-        const instArray = this.form.get('instructions') as FormArray;
-        instArray.clear();
-        (recipe.instructions || []).forEach((s: string) => instArray.push(this.fb.control(s)));
+          const instArray = this.form.get('instructions') as FormArray;
+          instArray.clear();
+          (recipe.instructions || []).forEach((s: string) => instArray.push(this.fb.control(s)));
+
+          this.loading = false;
+        },
+        error: () => {
+          this.loading = false;
+        }
       });
     }
   }
@@ -253,6 +271,36 @@ export class RecipeComponent implements OnInit {
     const currentValue = this.highlighted?.value;
     this.highlighted?.setValue(!currentValue);
     this.highlighted?.markAsDirty();
+  }
+
+  onSuccessModalClose() {
+    this.showSuccessModal = false;
+    this.router.navigate(['/my-recipes']);
+  }
+
+  onOpenIngredientModal(event: any) {
+    if (event.mode === 'edit') {
+      this.ingredientModalFormData = event.data;
+    } else {
+      this.ingredientModalFormData = {
+        id: undefined,
+        name: event.name
+      };
+    }
+    this.showIngredientModal = true;
+  }
+
+  onIngredientModalClosed() {
+    this.showIngredientModal = false;
+    this.ingredientModalFormData = null;
+  }
+
+  onIngredientModalSaved(savedIngredient: any) {
+    this.showIngredientModal = false;
+    this.ingredientModalFormData = null;
+
+    this.ingredientsFormComponent?.onIngredientModalSaved(savedIngredient);
+
   }
 
 }

@@ -1,5 +1,5 @@
-import { Component, EventEmitter, Input, Output, OnInit, forwardRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {Component, EventEmitter, Input, Output, OnInit, forwardRef} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {
   ReactiveFormsModule,
   FormArray,
@@ -9,8 +9,9 @@ import {
   ControlValueAccessor,
   FormsModule
 } from '@angular/forms';
-import { IngredientAutocompleteComponent } from '../../../../../../shared/components/ingredient-autocomplete/ingredient-autocomplete.component';
-import { NewIngredientModalComponent } from '../../../../../../shared/components/new-ingredient-modal/new-ingredient-modal.component';
+import {
+  IngredientAutocompleteComponent
+} from '../../../../../../shared/components/ingredient-autocomplete/ingredient-autocomplete.component';
 import {IngredientService} from '../../../../../../shared/services/ingredient.service';
 
 export interface RecipeIngredient {
@@ -23,7 +24,7 @@ export interface RecipeIngredient {
 @Component({
   selector: 'app-recipe-ingredients-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, IngredientAutocompleteComponent, NewIngredientModalComponent, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, IngredientAutocompleteComponent, FormsModule],
   templateUrl: './recipe-ingredients-form.component.html',
   styleUrl: './recipe-ingredients-form.component.css',
   providers: [
@@ -37,12 +38,12 @@ export interface RecipeIngredient {
 export class RecipeIngredientsFormComponent implements OnInit, ControlValueAccessor {
   @Input() ingredientError: string = '';
   @Output() ingredientsChange = new EventEmitter<RecipeIngredient[]>();
+  @Output() openIngredientModal = new EventEmitter<any>();
 
   ingredientsForm: FormArray;
   ingredientForm: FormGroup;
-  showIngredientModal = false;
   editIndex: number | null = null;
-  editIngredient: RecipeIngredient = { id: '', name: '', quantity: 0, unit: '' };
+  editIngredient: RecipeIngredient = {id: '', name: '', quantity: 0, unit: ''};
 
   availableUnits: {
     id: string,
@@ -54,8 +55,10 @@ export class RecipeIngredientsFormComponent implements OnInit, ControlValueAcces
 
   ingredientModalFormData: any = null;
 
-  private onChange = (_: any) => {};
-  private onTouched = () => {};
+  private onChange = (_: any) => {
+  };
+  private onTouched = () => {
+  };
 
   constructor(private fb: FormBuilder, private ingredientService: IngredientService) {
     this.ingredientsForm = this.fb.array([]);
@@ -144,33 +147,19 @@ export class RecipeIngredientsFormComponent implements OnInit, ControlValueAcces
   }
 
   onIngredientSelected(event: { id?: string, name: string }) {
-    this.ingredientForm.patchValue({ id: event.id, name: event.name });
+    this.ingredientForm.patchValue({id: event.id, name: event.name});
 
-    if(event.id != null) {
+    if (event.id != null) {
       this.loadUnitsForIngredient(event.id, this.ingredientForm.value.unit, false);
     }
   }
 
   openNewIngredientModal(name: string) {
-    this.ingredientForm.patchValue({ name });
-    this.showIngredientModal = true;
-  }
-
-  onIngredientModalSaved(savedIngredient: any) {
-    this.ingredientForm.patchValue({
-      id: savedIngredient.id,
-      name: savedIngredient.name
-    }, { emitEvent: false });
-    this.showIngredientModal = false;
-
-    if (savedIngredient.id) {
-      this.loadUnitsForIngredient(savedIngredient.id, this.ingredientForm.value.unit, false);
-    }
-  }
-
-  onIngredientModalClosed() {
-    this.showIngredientModal = false;
-    this.ingredientModalFormData = null;
+    this.ingredientForm.patchValue({name});
+    this.openIngredientModal.emit({
+      mode: 'create',
+      name
+    });
   }
 
   addIngredient() {
@@ -218,7 +207,7 @@ export class RecipeIngredientsFormComponent implements OnInit, ControlValueAcces
 
   startEdit(i: number) {
     this.editIndex = i;
-    this.editIngredient = { ...this.ingredients[i] };
+    this.editIngredient = {...this.ingredients[i]};
     if (this.editIngredient.id) {
       this.loadUnitsForIngredient(this.editIngredient.id, this.editIngredient.unit, true);
     }
@@ -230,11 +219,11 @@ export class RecipeIngredientsFormComponent implements OnInit, ControlValueAcces
       control.patchValue({
         ...this.editIngredient,
         unitName: this.availableUnits.find(u => u.id === this.editIngredient.unit)?.name
-      }, { emitEvent: false });
+      }, {emitEvent: false});
       this.emitChange();
     }
     this.editIndex = null;
-    this.editIngredient = { id: undefined, name: '', quantity: 1, unit: '' };
+    this.editIngredient = {id: undefined, name: '', quantity: 1, unit: ''};
   }
 
   cancelEdit() {
@@ -269,7 +258,7 @@ export class RecipeIngredientsFormComponent implements OnInit, ControlValueAcces
         if (applyToEdit) {
           this.editIngredient.unit = defaultUnit;
         } else {
-          this.ingredientForm.patchValue({ unit: defaultUnit });
+          this.ingredientForm.patchValue({unit: defaultUnit});
         }
         this.loading = false;
       },
@@ -293,18 +282,19 @@ export class RecipeIngredientsFormComponent implements OnInit, ControlValueAcces
     this.loading = true;
     this.ingredientService.getById(ingredientId).subscribe({
       next: (ingredient) => {
-        this.ingredientModalFormData = {
-          id: ingredient.id,
-          name: ingredient.name,
-          category: ingredient.category?.id,
-          defaultUnit: ingredient.defaultUnit,
-          conversions: ingredient.conversions?.map((c: any) => ({
-            toUnit: c.toUnit,
-            factor: c.factor
-          })) ?? []
-        };
-
-        this.showIngredientModal = true;
+        this.openIngredientModal.emit({
+          mode: 'edit',
+          data: {
+            id: ingredient.id,
+            name: ingredient.name,
+            category: ingredient.category?.id,
+            defaultUnit: ingredient.defaultUnit,
+            conversions: ingredient.conversions?.map((c: any) => ({
+              toUnit: c.toUnit,
+              factor: c.factor
+            })) ?? []
+          }
+        });
         this.loading = false;
       },
       error: (err) => {
@@ -312,6 +302,17 @@ export class RecipeIngredientsFormComponent implements OnInit, ControlValueAcces
         this.loading = false;
       }
     });
+  }
+
+  onIngredientModalSaved(savedIngredient: any) {
+    this.ingredientForm.patchValue({
+      id: savedIngredient.id,
+      name: savedIngredient.name
+    });
+
+    if (savedIngredient.id) {
+      this.loadUnitsForIngredient(savedIngredient.id, this.ingredientForm.value.unit, false);
+    }
   }
 
 }

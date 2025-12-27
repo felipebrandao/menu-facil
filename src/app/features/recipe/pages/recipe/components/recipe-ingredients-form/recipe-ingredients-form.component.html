@@ -132,11 +132,4 @@
       <p>Nenhum ingrediente adicionado ainda.</p>
     </div>
   </div>
-  <app-new-ingredient-modal
-    *ngIf="showIngredientModal"
-    [formData]="ingredientForm.value.id ? ingredientModalFormData : { id: undefined, name: ingredientForm.value.name }"
-    (saved)="onIngredientModalSaved($event)"
-    (closed)="onIngredientModalClosed()">
-  </app-new-ingredient-modal>
-
 </div>
