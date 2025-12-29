@@ -58,15 +58,83 @@
   <ng-template #skeletonOrEmpty>
     <ng-container *ngIf="isLoading; else empty">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        <app-skeleton
+        <div
           *ngFor="let _ of [].constructor(limit)"
-          [rows]="3"
-          widthClass="w-full"
-          heightClass="h-48"
-        ></app-skeleton>
+          class="bg-card-light dark:bg-card-dark rounded-lg shadow-md overflow-hidden"
+          aria-hidden="true"
+        >
+          <!-- imagem -->
+          <app-skeleton
+            [rows]="1"
+            widthClass="w-full"
+            heightClass="h-48"
+            [rounded]="false"
+          ></app-skeleton>
+
+          <div class="p-4">
+            <!-- título -->
+            <app-skeleton
+              [rows]="1"
+              widthClass="w-3/4"
+              heightClass="h-6"
+              [gap]="12"
+            ></app-skeleton>
+
+            <!-- categoria -->
+            <app-skeleton
+              [rows]="1"
+              widthClass="w-1/2"
+              heightClass="h-4"
+              [gap]="10"
+            ></app-skeleton>
+
+            <!-- autor -->
+            <app-skeleton
+              [rows]="1"
+              widthClass="w-2/3"
+              heightClass="h-4"
+              [gap]="10"
+            ></app-skeleton>
+
+            <!-- rating + favorito -->
+            <div class="flex items-center justify-between mt-3">
+              <app-skeleton
+                [rows]="1"
+                widthClass="w-24"
+                heightClass="h-4"
+                [gap]="0"
+              ></app-skeleton>
+
+              <app-skeleton
+                [rows]="1"
+                widthClass="w-8"
+                heightClass="h-4"
+                [gap]="0"
+              ></app-skeleton>
+            </div>
+
+            <!-- botões -->
+            <div class="mt-3 flex gap-2 justify-end w-full">
+              <app-skeleton
+                [rows]="1"
+                widthClass="w-20"
+                heightClass="h-8"
+                [gap]="0"
+              ></app-skeleton>
+
+              <app-skeleton
+                [rows]="1"
+                widthClass="w-28"
+                heightClass="h-8"
+                [gap]="0"
+              ></app-skeleton>
+            </div>
+          </div>
+        </div>
       </div>
     </ng-container>
   </ng-template>
+
 
   <ng-template #empty>
     <div class="text-center py-16">
