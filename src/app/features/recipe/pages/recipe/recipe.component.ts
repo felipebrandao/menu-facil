@@ -46,6 +46,8 @@ export class RecipeComponent implements OnInit {
   showIngredientModal = false;
   ingredientModalFormData: any = null;
 
+  isSaving = false;
+
   @ViewChild(RecipeIngredientsFormComponent)
   ingredientsFormComponent!: RecipeIngredientsFormComponent;
 
@@ -143,6 +145,8 @@ export class RecipeComponent implements OnInit {
       return;
     }
 
+    this.isSaving = true;
+
     const instructions = (this.form.value.instructions || [])
       .map((s: string) => (s || '').trim())
       .filter((s: string) => s.length > 0);
@@ -165,10 +169,12 @@ export class RecipeComponent implements OnInit {
     const finalizeSuccess = (recipeId: string) => {
       this.lastRecipeId = recipeId;
       this.showSuccessModal = true;
+      this.isSaving = false;
     };
 
     const handleError = () => {
       this.showErrorModal = true;
+      this.isSaving = false;
     };
 
     if (this.lastRecipeId) {
@@ -300,7 +306,6 @@ export class RecipeComponent implements OnInit {
     this.ingredientModalFormData = null;
 
     this.ingredientsFormComponent?.onIngredientModalSaved(savedIngredient);
-
   }
 
 }
