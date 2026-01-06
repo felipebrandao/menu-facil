@@ -10,11 +10,12 @@
     <div *ngFor="let day of monthDays; let i = index"
          class="h-48 p-1.5 flex flex-col"
          [ngClass]="{
-           'bg-gray-50 dark:bg-gray-800': day.disabled,
-           'bg-card-light dark:bg-card-dark hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer': !day.disabled
+           'bg-gray-50 dark:bg-gray-800': day.disabled || day.past,
+           'opacity-70 grayscale': day.past && !day.disabled,
+           'bg-card-light dark:bg-card-dark hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer': !day.disabled && !day.past
          }"
-         (click)="!day.disabled && emitOpen(i)">
-
+         (click)="!day.disabled && !day.past && emitOpen(i)"
+    >
       <span class="text-sm rounded-full px-2 py-1 inline-block w-min"
             [ngClass]="{
         'bg-primary text-white': day.date?.toDateString() === todayString,

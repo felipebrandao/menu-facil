@@ -4,9 +4,11 @@
   <div *ngFor="let day of week; let i = index"
        class="min-h-[12rem] p-1.5 flex flex-col transition-colors"
        [ngClass]="{
-         'bg-card-light dark:bg-card-dark hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer': true
-       }"
-       (click)="emitOpen(i)">
+          'bg-gray-50 dark:bg-gray-800 opacity-70 grayscale': isPastDay(day.date),
+          'bg-card-light dark:bg-card-dark hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer': !isPastDay(day.date)
+        }"
+       (click)="!isPastDay(day.date) && emitOpen(i)"
+  >
 
     <div class="flex items-center justify-between mb-2">
       <div>

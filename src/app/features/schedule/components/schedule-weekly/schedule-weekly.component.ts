@@ -32,6 +32,14 @@ export class ScheduleWeeklyComponent {
 
   todayString = new Date().toDateString();
 
+  isPastDay(d: Date): boolean {
+    const day = new Date(d);
+    day.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return day.getTime() < today.getTime();
+  }
+
   emitOpen(dayIndex: number) { this.openPanel.emit(dayIndex); }
   emitRemove(dayIndex: number, itemIndex: number) { this.removeFromDay.emit({ dayIndex, itemIndex }); }
 

@@ -1,14 +1,15 @@
-import { Component, OnInit } from '@angular/core';
-import { ScheduleService } from './services/schedule.service';
-import { RecipeSummary } from '../../shared/models/recipe.model';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {Component, OnInit} from '@angular/core';
+import {ScheduleService} from './services/schedule.service';
+import {RecipeSummary} from '../../shared/models/recipe.model';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
 import {ScheduleWeeklyComponent} from './components/schedule-weekly/schedule-weekly.component';
 import {ScheduleMonthlyComponent} from './components/schedule-monthly/schedule-monthly.component';
 import {RecipeService} from '../../shared/services/recipe.service';
-import { Router } from '@angular/router';
-import { format, parseISO, isValid } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import {Router} from '@angular/router';
+import {format, parseISO, isValid} from 'date-fns';
+import {ptBR} from 'date-fns/locale';
+import {SkeletonComponent} from '../../shared/components/skeleton/skeleton.component';
 
 type WeekDaySlot = { date: Date; label: string; short: string; items: RecipeSummary[] };
 
@@ -19,7 +20,8 @@ type WeekDaySlot = { date: Date; label: string; short: string; items: RecipeSumm
     CommonModule,
     FormsModule,
     ScheduleWeeklyComponent,
-    ScheduleMonthlyComponent
+    ScheduleMonthlyComponent,
+    SkeletonComponent
   ],
   styleUrls: ['./schedule.component.css']
 })
@@ -31,13 +33,19 @@ export class ScheduleComponent implements OnInit {
   categories = ['Todos', 'Café da Manhã', 'Almoço', 'Jantar', 'Lanche', 'Sobremesa'];
   recipes: RecipeSummary[] = [];
 
+  isLoadingRecipes = false;
+
+  recipesPage = 1;
+  recipesLimit = 5;
+  recipesTotal = 0;
+  recipesTotalPages = 1;
+
   week: WeekDaySlot[] = [];
   currentDate = new Date();
   weekStart = this.startOfWeek(new Date());
   selectedPeriodLabel = '';
 
   scheduledMap: Record<string, RecipeSummary[]> = {};
-
   private scheduledIdsMap: Record<string, string[]> = {};
 
   showRecipeModal = false;
@@ -63,23 +71,48 @@ export class ScheduleComponent implements OnInit {
   }
 
   private loadRecipes() {
-    this.recipeService.getRecipes({ limit: 5 }).subscribe({
-      next: resp => {
-        if (resp && Array.isArray(resp.recipes)) {
-          this.recipes = resp.recipes.map(r => ({
-            id: r.id,
-            name: r.name,
-            category: r.category,
-            mainImage: r.mainImage
-          }));
-        } else {
-          this.recipes = [];
-        }
+    this.isLoadingRecipes = true;
+
+    this.recipeService.getRecipes({
+      page: this.recipesPage,
+      limit: this.recipesLimit
+    }).subscribe({
+      next: (resp: any) => {
+        const list = Array.isArray(resp?.recipes) ? resp.recipes : [];
+        this.recipes = list.map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          category: r.category,
+          mainImage: r.mainImage
+        })) as RecipeSummary[];
+
+        const p = resp?.pagination || {};
+        this.recipesPage = p.page ?? this.recipesPage;
+        this.recipesLimit = p.limit ?? this.recipesLimit;
+        this.recipesTotal = p.total ?? this.recipesTotal;
+        this.recipesTotalPages = p.totalPages ?? Math.max(1, Math.ceil((this.recipesTotal || this.recipes.length) / this.recipesLimit));
+
+        this.isLoadingRecipes = false;
       },
       error: () => {
         this.recipes = [];
+        this.recipesTotal = 0;
+        this.recipesTotalPages = 1;
+        this.isLoadingRecipes = false;
       }
     });
+  }
+
+  prevRecipesPage() {
+    if (this.recipesPage <= 1 || this.isLoadingRecipes) return;
+    this.recipesPage--;
+    this.loadRecipes();
+  }
+
+  nextRecipesPage() {
+    if (this.recipesPage >= this.recipesTotalPages || this.isLoadingRecipes) return;
+    this.recipesPage++;
+    this.loadRecipes();
   }
 
   setView(mode: 'weekly' | 'monthly') {
@@ -114,7 +147,7 @@ export class ScheduleComponent implements OnInit {
     } else {
       this.loadMonthly();
       const y = this.currentDate.getFullYear();
-      const m = this.currentDate.toLocaleString('pt-BR', { month: 'long' });
+      const m = this.currentDate.toLocaleString('pt-BR', {month: 'long'});
       this.selectedPeriodLabel = `${m.charAt(0).toUpperCase() + m.slice(1)} ${y}`;
     }
   }
@@ -143,7 +176,7 @@ export class ScheduleComponent implements OnInit {
 
   private loadMonthly() {
     const year = this.currentDate.getFullYear();
-    const month = this.currentDate.getMonth() + 1; // 1-12
+    const month = this.currentDate.getMonth() + 1;
     this.scheduleService.getMonthly(year, month).subscribe(resp => {
       const map: Record<string, RecipeSummary[]> = {};
       const idsMap: Record<string, string[]> = {};
@@ -237,12 +270,12 @@ export class ScheduleComponent implements OnInit {
   }
 
   onRemoveFromDate(e: { dateKey: string; itemIndex: number }) {
-    const { dateKey, itemIndex } = e;
+    const {dateKey, itemIndex} = e;
 
     const arr = this.scheduledMap[dateKey] ?? [];
     const removed = arr.splice(itemIndex, 1)[0];
 
-    this.scheduledMap = { ...this.scheduledMap, [dateKey]: [...arr] };
+    this.scheduledMap = {...this.scheduledMap, [dateKey]: [...arr]};
 
     const scheduledId = this.scheduledIdsMap[dateKey]?.splice(itemIndex, 1)?.[0];
 
@@ -252,7 +285,7 @@ export class ScheduleComponent implements OnInit {
         error: () => {
           const rollback = this.scheduledMap[dateKey] ?? [];
           rollback.splice(itemIndex, 0, removed);
-          this.scheduledMap = { ...this.scheduledMap, [dateKey]: [...rollback] };
+          this.scheduledMap = {...this.scheduledMap, [dateKey]: [...rollback]};
           if (!this.scheduledIdsMap[dateKey]) this.scheduledIdsMap[dateKey] = [];
           this.scheduledIdsMap[dateKey].splice(itemIndex, 0, scheduledId);
         }
@@ -298,7 +331,7 @@ export class ScheduleComponent implements OnInit {
     } else {
       const arr = this.scheduledMap[dateKey] ?? [];
       arr.splice(idx, 1);
-      this.scheduledMap = { ...this.scheduledMap, [dateKey]: [...arr] };
+      this.scheduledMap = {...this.scheduledMap, [dateKey]: [...arr]};
       this.closeScheduledModal();
     }
   }
@@ -317,6 +350,6 @@ export class ScheduleComponent implements OnInit {
     }
 
     if (!isValid(date)) return '';
-    return format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR });
+    return format(date, "EEEE, d 'de' MMMM 'de' yyyy", {locale: ptBR});
   }
 }

@@ -8,14 +8,13 @@ export interface DaySlot {
   short?: string;
   items: RecipeSummary[];
   disabled?: boolean;
+  past?: boolean;
 }
 
 @Component({
   selector: 'app-schedule-monthly',
   standalone: true,
-  imports: [
-    CommonModule
-  ],
+  imports: [CommonModule],
   templateUrl: './schedule-monthly.component.html',
   styleUrl: './schedule-monthly.component.css'
 })
@@ -33,18 +32,30 @@ export class ScheduleMonthlyComponent implements OnChanges {
 
   monthDays: DaySlot[] = [];
 
-  private dayLabels = ['DOM','SEG','TER','QUA','QUI','SEX','SAB'];
+  private dayLabels = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
 
   todayString = new Date().toDateString();
 
+  private startOfToday(): Date {
+    const t = new Date();
+    t.setHours(0, 0, 0, 0);
+    return t;
+  }
+
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['currentDate'] || changes['scheduledMap'] || changes['filterQuery'] || changes['filterCategory'] || changes['recipes']) {
+    if (
+      changes['currentDate'] ||
+      changes['scheduledMap'] ||
+      changes['filterQuery'] ||
+      changes['filterCategory'] ||
+      changes['recipes']
+    ) {
       this.buildMonth();
     }
   }
 
   private dateKey(d: Date): string {
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
   private buildMonth() {
@@ -59,6 +70,8 @@ export class ScheduleMonthlyComponent implements OnChanges {
     const leading = firstOfMonth.getDay();
     const prevMonthLast = new Date(year, month, 0).getDate();
 
+    const today = this.startOfToday();
+
     const cells: DaySlot[] = [];
 
     for (let i = leading - 1; i >= 0; i--) {
@@ -67,7 +80,7 @@ export class ScheduleMonthlyComponent implements OnChanges {
       cells.push({
         date,
         label: this.dayLabels[date.getDay()],
-        short: `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth() + 1).padStart(2,'0')}`,
+        short: `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`,
         items: [],
         disabled: true
       });
@@ -78,7 +91,7 @@ export class ScheduleMonthlyComponent implements OnChanges {
       cells.push({
         date,
         label: this.dayLabels[date.getDay()],
-        short: `${String(day).padStart(2,'0')}/${String(month + 1).padStart(2,'0')}`,
+        short: `${String(day).padStart(2, '0')}/${String(month + 1).padStart(2, '0')}`,
         items: []
       });
     }
@@ -89,23 +102,33 @@ export class ScheduleMonthlyComponent implements OnChanges {
       cells.push({
         date,
         label: this.dayLabels[date.getDay()],
-        short: `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth() + 1).padStart(2,'0')}`,
+        short: `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`,
         items: [],
         disabled: true
       });
+    }
 
-      for (const c of cells) {
-        if (c.date) {
-          const key = this.dateKey(c.date);
-          c.items = (this.scheduledMap && this.scheduledMap[key]) ? [...this.scheduledMap[key]] : [];
-        }
-      }
+    for (const c of cells) {
+      if (!c.date) continue;
+      const key = this.dateKey(c.date);
+      c.items = this.scheduledMap?.[key] ? [...this.scheduledMap[key]] : [];
+    }
+
+    for (const c of cells) {
+      if (!c.date) continue;
+
+      const cellDate = new Date(c.date);
+      cellDate.setHours(0, 0, 0, 0);
+
+      c.past = !c.disabled && cellDate.getTime() < today.getTime();
     }
 
     this.monthDays = cells;
   }
 
-  emitOpen(dayIndex: number) { this.openDay.emit(dayIndex); }
+  emitOpen(dayIndex: number) {
+    this.openDay.emit(dayIndex);
+  }
 
   emitRemove(dayIndex: number, itemIndex: number, ev?: MouseEvent) {
     ev?.stopPropagation();

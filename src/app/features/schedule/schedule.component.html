@@ -27,16 +27,80 @@
         </div>
 
         <div class="space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
-          <div *ngFor="let r of filteredRecipes()"
-               class="bg-card-light dark:bg-card-dark p-4 rounded-lg border border-border-light dark:border-border-dark shadow-sm flex justify-between items-start">
-            <div>
-              <h3 class="font-semibold">{{ r.name }}</h3>
-              <p class="text-sm text-subtext-light">{{ r.category }}</p>
+          <ng-container *ngIf="isLoadingRecipes; else recipesList">
+            <div
+              *ngFor="let _ of [1,2,3,4,5]"
+              class="bg-card-light dark:bg-card-dark p-4 rounded-lg border border-border-light dark:border-border-dark shadow-sm flex justify-between items-start"
+              aria-hidden="true"
+            >
+              <div class="min-w-0 flex-1">
+                <app-skeleton
+                  [rows]="1"
+                  widthClass="w-44 sm:w-56"
+                  heightClass="h-5"
+                  [gap]="0"
+                ></app-skeleton>
+
+                <div class="mt-2">
+                  <app-skeleton
+                    [rows]="1"
+                    widthClass="w-28 sm:w-36"
+                    heightClass="h-4"
+                    [gap]="0"
+                  ></app-skeleton>
+                </div>
+              </div>
+
+              <div class="ml-3 flex-shrink-0">
+                <app-skeleton
+                  [rows]="1"
+                  widthClass="w-6"
+                  heightClass="h-6"
+                  [gap]="0"
+                  [rounded]="true"
+                ></app-skeleton>
+              </div>
             </div>
-            <button (click)="openAddRecipeModal(r)" class="text-subtext-light dark:text-subtext-dark hover:text-primary dark:hover:text-primary">
-              <span class="material-icons">add_circle_outline</span>
-            </button>
+          </ng-container>
+
+          <ng-template #recipesList>
+            <div *ngFor="let r of filteredRecipes()"
+                 class="bg-card-light dark:bg-card-dark p-4 rounded-lg border border-border-light dark:border-border-dark shadow-sm flex justify-between items-start">
+              <div>
+                <h3 class="font-semibold">{{ r.name }}</h3>
+                <p class="text-sm text-subtext-light">{{ r.category }}</p>
+              </div>
+              <button (click)="openAddRecipeModal(r)"
+                      class="text-subtext-light dark:text-subtext-dark hover:text-primary dark:hover:text-primary">
+                <span class="material-icons">add_circle_outline</span>
+              </button>
+            </div>
+          </ng-template>
+        </div>
+        <div class="mt-4 flex items-center justify-between gap-3">
+          <button
+            type="button"
+            (click)="prevRecipesPage()"
+            [disabled]="recipesPage <= 1 || isLoadingRecipes"
+            class="px-3 py-2 rounded-md border border-border-light dark:border-border-dark text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
+            <span class="material-icons text-base align-middle">chevron_left</span>
+            <span class="align-middle">Anterior</span>
+          </button>
+
+          <div class="text-sm text-subtext-light dark:text-subtext-dark whitespace-nowrap">
+            Página {{ recipesPage }} de {{ recipesTotalPages }}
           </div>
+
+          <button
+            type="button"
+            (click)="nextRecipesPage()"
+            [disabled]="recipesPage >= recipesTotalPages || isLoadingRecipes"
+            class="px-3 py-2 rounded-md border border-border-light dark:border-border-dark text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
+            <span class="align-middle">Próxima</span>
+            <span class="material-icons text-base align-middle">chevron_right</span>
+          </button>
         </div>
       </div>
     </div>
@@ -62,25 +126,24 @@
                 <button
                   (click)="setView('weekly')"
                   [ngClass]="{
-                  'px-3 py-1.5 text-sm rounded-l-md': true,
-                  'bg-primary text-white': viewMode === 'weekly',
-                  'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600': viewMode !== 'weekly'
-                }">
+                    'px-3 py-1.5 text-sm rounded-l-md': true,
+                    'bg-primary text-white': viewMode === 'weekly',
+                    'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600': viewMode !== 'weekly'
+                  }">
                   Semanal
                 </button>
                 <button
                   (click)="setView('monthly')"
                   [ngClass]="{
-                  'px-3 py-1.5 text-sm rounded-r-md': true,
-                  'bg-primary text-white': viewMode === 'monthly',
-                  'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600': viewMode !== 'monthly'
-                }">
+                    'px-3 py-1.5 text-sm rounded-r-md': true,
+                    'bg-primary text-white': viewMode === 'monthly',
+                    'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600': viewMode !== 'monthly'
+                  }">
                   Mensal
                 </button>
               </div>
             </div>
           </div>
-
         </div>
 
         <div *ngIf="viewMode === 'weekly'">
@@ -127,17 +190,20 @@
 
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-subtext-light dark:text-subtext-dark mb-1" for="date">Data</label>
+          <label class="block text-sm font-medium text-subtext-light dark:text-subtext-dark mb-1"
+                 for="date">Data</label>
           <div class="relative">
             <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">calendar_today</span>
-            <input id="date" name="date" type="date" class="w-full pl-10 pr-4 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-md focus:ring-primary focus:border-primary"
+            <input id="date" name="date" type="date"
+                   class="w-full pl-10 pr-4 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-md focus:ring-primary focus:border-primary"
                    [(ngModel)]="modalDate"/>
           </div>
         </div>
       </div>
 
       <div class="mt-6 flex justify-end gap-2">
-        <button (click)="closeAddRecipeModal()" class="px-4 py-2 rounded-md border border-border-light dark:border-border-dark text-sm">
+        <button (click)="closeAddRecipeModal()"
+                class="px-4 py-2 rounded-md border border-border-light dark:border-border-dark text-sm">
           Cancelar
         </button>
         <button (click)="confirmAddFromModal()" class="px-4 py-2 rounded-md bg-primary text-white text-sm">
@@ -159,7 +225,8 @@
       <div class="mb-4">
         <p class="font-semibold text-lg">{{ scheduledModalRecipe?.name }}</p>
         <p class="text-sm text-subtext-light">{{ scheduledModalRecipe?.category }}</p>
-        <p class="text-sm text-subtext-light mt-2">Data: <span class="font-medium">{{ formatWeekdayDate(scheduledModalDateKey) }}</span></p>
+        <p class="text-sm text-subtext-light mt-2">Data: <span
+          class="font-medium">{{ formatWeekdayDate(scheduledModalDateKey) }}</span></p>
       </div>
 
       <div class="flex justify-end gap-2 mt-6">
