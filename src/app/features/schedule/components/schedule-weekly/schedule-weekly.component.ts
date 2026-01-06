@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RecipeSummary } from '../../../../shared/models/recipe.model';
+import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
 
 export interface DaySlot {
   date: Date;
@@ -13,7 +14,8 @@ export interface DaySlot {
   selector: 'app-schedule-weekly',
   standalone: true,
   imports: [
-    CommonModule
+    CommonModule,
+    SkeletonComponent
   ],
   templateUrl: './schedule-weekly.component.html',
   styleUrl: './schedule-weekly.component.css'
@@ -24,6 +26,8 @@ export class ScheduleWeeklyComponent {
   @Input() recipes: RecipeSummary[] = [];
   @Input() filterQuery = '';
   @Input() filterCategory = 'Todos';
+
+  @Input() isLoading = false;
 
   @Output() openPanel = new EventEmitter<number>();
   @Output() addToDay = new EventEmitter<{ recipe: RecipeSummary; dayIndex: number }>();

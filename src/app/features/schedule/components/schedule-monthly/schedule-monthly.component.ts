@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RecipeSummary } from '../../../../shared/models/recipe.model';
+import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
 
 export interface DaySlot {
   date?: Date;
@@ -14,7 +15,7 @@ export interface DaySlot {
 @Component({
   selector: 'app-schedule-monthly',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SkeletonComponent],
   templateUrl: './schedule-monthly.component.html',
   styleUrl: './schedule-monthly.component.css'
 })
@@ -24,6 +25,8 @@ export class ScheduleMonthlyComponent implements OnChanges {
   @Input() filterQuery = '';
   @Input() filterCategory = 'Todos';
   @Input() scheduledMap: Record<string, RecipeSummary[]> = {};
+
+  @Input() isLoading = false;
 
   @Output() openDay = new EventEmitter<number>();
   @Output() addToDate = new EventEmitter<{ recipe: RecipeSummary; dateKey: string }>();

@@ -1,4 +1,5 @@
-
+<!-- src/app/features/schedule/components/schedule-monthly/schedule-monthly.component.html -->
+<ng-container *ngIf="!isLoading; else monthlySkeleton">
   <div class="grid grid-cols-7 gap-px bg-border-light dark:bg-border-dark border border-border-light dark:border-border-dark rounded-t-lg overflow-hidden">
     <div *ngFor="let lbl of ['DOM','SEG','TER','QUA','QUI','SEX','SAB']"
          class="text-center py-2 text-sm font-medium text-subtext-light dark:text-subtext-dark bg-card-light dark:bg-card-dark">
@@ -18,9 +19,9 @@
     >
       <span class="text-sm rounded-full px-2 py-1 inline-block w-min"
             [ngClass]="{
-        'bg-primary text-white': day.date?.toDateString() === todayString,
-        'text-gray-400 dark:text-gray-500': day.disabled
-      }">
+              'bg-primary text-white': day.date?.toDateString() === todayString,
+              'text-gray-400 dark:text-gray-500': day.disabled
+            }">
         {{ day.date?.getDate() }}
       </span>
 
@@ -39,3 +40,26 @@
       </div>
     </div>
   </div>
+</ng-container>
+
+<ng-template #monthlySkeleton>
+  <div class="grid grid-cols-7 gap-px bg-border-light dark:bg-border-dark border border-border-light dark:border-border-dark rounded-lg overflow-hidden"
+       aria-hidden="true">
+    <div *ngFor="let _ of [].constructor(42)"
+         class="h-48 p-1.5 bg-card-light dark:bg-card-dark flex flex-col">
+      <div class="flex items-center justify-between">
+        <app-skeleton [rows]="1" widthClass="w-10" heightClass="h-5" [rounded]="true" [gap]="0"></app-skeleton>
+        <app-skeleton [rows]="1" widthClass="w-12" heightClass="h-4" [gap]="0"></app-skeleton>
+      </div>
+
+      <div class="mt-3 space-y-2">
+        <div class="p-2 rounded-md bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark">
+          <app-skeleton [rows]="1" widthClass="w-3/4" heightClass="h-4" [gap]="0"></app-skeleton>
+          <div class="mt-2">
+            <app-skeleton [rows]="1" widthClass="w-1/2" heightClass="h-3" [gap]="0"></app-skeleton>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>

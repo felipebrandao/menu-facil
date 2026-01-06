@@ -48,6 +48,8 @@ export class ScheduleComponent implements OnInit {
   scheduledMap: Record<string, RecipeSummary[]> = {};
   private scheduledIdsMap: Record<string, string[]> = {};
 
+  isLoadingSchedule = false;
+
   showRecipeModal = false;
   modalRecipe?: RecipeSummary;
   modalDate = '';
@@ -153,39 +155,60 @@ export class ScheduleComponent implements OnInit {
   }
 
   private loadWeekly() {
-    const startKey = this.formatKey(this.weekStart);
-    this.scheduleService.getWeekly(startKey).subscribe(resp => {
-      this.week = resp.days.map(d => {
-        const date = this.parseKey(d.date);
-        return {
-          date,
-          label: this.dayLabels[date.getDay()],
-          short: this.toDDMM(date),
-          items: (d.recipes || [])
-            .map(r => r.recipeSummary!)
-            .filter(Boolean)
-        };
-      });
+    this.isLoadingSchedule = true;
 
-      this.scheduledIdsMap = {};
-      resp.days.forEach(d => {
-        this.scheduledIdsMap[d.date] = (d.recipes || []).map(r => r.id);
-      });
+    const startKey = this.formatKey(this.weekStart);
+    this.scheduleService.getWeekly(startKey).subscribe({
+      next: resp => {
+        this.week = resp.days.map(d => {
+          const date = this.parseKey(d.date);
+          return {
+            date,
+            label: this.dayLabels[date.getDay()],
+            short: this.toDDMM(date),
+            items: (d.recipes || [])
+              .map(r => r.recipeSummary!)
+              .filter(Boolean)
+          };
+        });
+
+        this.scheduledIdsMap = {};
+        resp.days.forEach(d => {
+          this.scheduledIdsMap[d.date] = (d.recipes || []).map(r => r.id);
+        });
+
+        this.isLoadingSchedule = false;
+      },
+      error: () => {
+        this.week = [];
+        this.scheduledIdsMap = {};
+        this.isLoadingSchedule = false;
+      }
     });
   }
 
   private loadMonthly() {
+    this.isLoadingSchedule = true;
+
     const year = this.currentDate.getFullYear();
     const month = this.currentDate.getMonth() + 1;
-    this.scheduleService.getMonthly(year, month).subscribe(resp => {
-      const map: Record<string, RecipeSummary[]> = {};
-      const idsMap: Record<string, string[]> = {};
-      resp.days.forEach(d => {
-        map[d.date] = (d.recipes || []).map(r => r.recipeSummary!).filter(Boolean);
-        idsMap[d.date] = (d.recipes || []).map(r => r.id);
-      });
-      this.scheduledMap = map;
-      this.scheduledIdsMap = idsMap;
+    this.scheduleService.getMonthly(year, month).subscribe({
+      next: resp => {
+        const map: Record<string, RecipeSummary[]> = {};
+        const idsMap: Record<string, string[]> = {};
+        resp.days.forEach(d => {
+          map[d.date] = (d.recipes || []).map(r => r.recipeSummary!).filter(Boolean);
+          idsMap[d.date] = (d.recipes || []).map(r => r.id);
+        });
+        this.scheduledMap = map;
+        this.scheduledIdsMap = idsMap;
+        this.isLoadingSchedule = false;
+      },
+      error: () => {
+        this.scheduledMap = {};
+        this.scheduledIdsMap = {};
+        this.isLoadingSchedule = false;
+      }
     });
   }
 
