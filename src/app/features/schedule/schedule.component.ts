@@ -10,6 +10,8 @@ import {Router} from '@angular/router';
 import {format, parseISO, isValid} from 'date-fns';
 import {ptBR} from 'date-fns/locale';
 import {SkeletonComponent} from '../../shared/components/skeleton/skeleton.component';
+import {SuccessModalComponent} from '../../shared/components/success-modal/success-modal.component';
+import {ErrorModalComponent} from '../../shared/components/error-modal/error-modal.component';
 
 type WeekDaySlot = { date: Date; label: string; short: string; items: RecipeSummary[] };
 
@@ -21,7 +23,9 @@ type WeekDaySlot = { date: Date; label: string; short: string; items: RecipeSumm
     FormsModule,
     ScheduleWeeklyComponent,
     ScheduleMonthlyComponent,
-    SkeletonComponent
+    SkeletonComponent,
+    SuccessModalComponent,
+    ErrorModalComponent
   ],
   styleUrls: ['./schedule.component.css']
 })
@@ -54,12 +58,23 @@ export class ScheduleComponent implements OnInit {
   modalRecipe?: RecipeSummary;
   modalDate = '';
 
+  isAddingRecipe = false;
+
+  showAddedSuccessModal = false;
+
   private dayLabels = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
 
   showScheduledModal = false;
   scheduledModalRecipe?: RecipeSummary;
   scheduledModalDateKey?: string;
   scheduledModalItemIndex?: number;
+
+  showErrorModal = false;
+  errorMessage = '';
+  errorDetails = '';
+
+  isRemovingScheduled = false;
+  showRemovedSuccessModal = false;
 
   constructor(
     private scheduleService: ScheduleService,
@@ -70,6 +85,21 @@ export class ScheduleComponent implements OnInit {
   ngOnInit(): void {
     this.loadRecipes();
     this.refreshPeriod();
+  }
+
+  private openError(message: string, details = '') {
+    this.errorMessage = message;
+    this.errorDetails = details;
+    this.showErrorModal = true;
+  }
+
+  onRetry() {
+    this.showErrorModal = false;
+    this.refreshPeriod();
+  }
+
+  onCancel() {
+    this.showErrorModal = false;
   }
 
   private loadRecipes() {
@@ -101,6 +131,7 @@ export class ScheduleComponent implements OnInit {
         this.recipesTotal = 0;
         this.recipesTotalPages = 1;
         this.isLoadingRecipes = false;
+        this.openError('Erro ao carregar receitas', 'Tente novamente.');
       }
     });
   }
@@ -183,6 +214,7 @@ export class ScheduleComponent implements OnInit {
         this.week = [];
         this.scheduledIdsMap = {};
         this.isLoadingSchedule = false;
+        this.openError('Erro ao carregar cronograma semanal', 'Tente novamente.');
       }
     });
   }
@@ -208,6 +240,7 @@ export class ScheduleComponent implements OnInit {
         this.scheduledMap = {};
         this.scheduledIdsMap = {};
         this.isLoadingSchedule = false;
+        this.openError('Erro ao carregar cronograma mensal', 'Tente novamente.');
       }
     });
   }
@@ -220,23 +253,6 @@ export class ScheduleComponent implements OnInit {
     );
   }
 
-  addToDay(recipe: RecipeSummary, dayIndex: number) {
-    const dateKey = this.formatKey(this.week[dayIndex].date);
-    this.scheduleService.addRecipe(dateKey, recipe.id).subscribe(() => this.loadWeekly());
-  }
-
-  addToDate(e: { recipe: RecipeSummary; dateKey: string }) {
-    this.scheduleService.addRecipe(e.dateKey, e.recipe.id).subscribe(() => this.loadMonthly());
-  }
-
-  removeFromDay(dayIndex: number, itemIndex: number) {
-    const dateKey = this.formatKey(this.week[dayIndex].date);
-    const ids = this.scheduledIdsMap[dateKey] || [];
-    const scheduledId = ids[itemIndex];
-    if (!scheduledId) return;
-    this.scheduleService.deleteRecipe(scheduledId).subscribe(() => this.loadWeekly());
-  }
-
   openAddRecipeModal(r: RecipeSummary) {
     this.modalRecipe = r;
     this.modalDate = this.formatKey(new Date());
@@ -244,15 +260,52 @@ export class ScheduleComponent implements OnInit {
   }
 
   closeAddRecipeModal() {
+    if (this.isAddingRecipe) return;
     this.showRecipeModal = false;
     this.modalRecipe = undefined;
   }
 
   confirmAddFromModal() {
-    if (!this.modalRecipe || !this.modalDate) return;
-    this.scheduleService.addRecipe(this.modalDate, this.modalRecipe.id).subscribe(() => {
-      this.closeAddRecipeModal();
-      this.refreshPeriod();
+    if (!this.modalRecipe || !this.modalDate || this.isAddingRecipe) return;
+
+    this.isAddingRecipe = true;
+
+    this.scheduleService.addRecipe(this.modalDate, this.modalRecipe.id).subscribe({
+      next: () => {
+        this.isAddingRecipe = false;
+        this.closeAddRecipeModal();
+        this.refreshPeriod();
+        this.showAddedSuccessModal = true;
+      },
+      error: () => {
+        this.isAddingRecipe = false;
+        this.openError('Erro ao adicionar receita no cronograma', 'Por favor, tente novamente.');
+      }
+    });
+  }
+
+  closeAddedSuccessModal() {
+    this.showAddedSuccessModal = false;
+  }
+
+  addToDay(recipe: RecipeSummary, dayIndex: number) {
+    const dateKey = this.formatKey(this.week[dayIndex].date);
+    this.scheduleService.addRecipe(dateKey, recipe.id).subscribe({
+      next: () => {
+        this.loadWeekly();
+        this.showAddedSuccessModal = true;
+      },
+      error: () => this.openError('Erro ao adicionar receita no dia', 'Por favor, tente novamente.')
+    });
+  }
+
+  addToDate(e: { recipe: RecipeSummary; dateKey: string }) {
+    this.scheduleService.addRecipe(e.dateKey, e.recipe.id).subscribe({
+      next: () => {
+        this.loadMonthly();
+        this.showAddedSuccessModal = true;
+      },
+      error: () => this.openError('Erro ao adicionar receita na data', 'Por favor, tente novamente.')
     });
   }
 
@@ -293,27 +346,66 @@ export class ScheduleComponent implements OnInit {
   }
 
   onRemoveFromDate(e: { dateKey: string; itemIndex: number }) {
-    const {dateKey, itemIndex} = e;
+    const { dateKey, itemIndex } = e;
 
-    const arr = this.scheduledMap[dateKey] ?? [];
-    const removed = arr.splice(itemIndex, 1)[0];
+    const recipe = this.scheduledMap?.[dateKey]?.[itemIndex];
+    if (!recipe) return;
 
-    this.scheduledMap = {...this.scheduledMap, [dateKey]: [...arr]};
+    this.scheduledModalDateKey = dateKey;
+    this.scheduledModalItemIndex = itemIndex;
+    this.scheduledModalRecipe = recipe;
+    this.showScheduledModal = true;
+  }
 
-    const scheduledId = this.scheduledIdsMap[dateKey]?.splice(itemIndex, 1)?.[0];
+  removeFromDay(dayIndex: number, itemIndex: number) {
+    const dateKey = this.formatKey(this.week[dayIndex].date);
+    const recipe = this.week?.[dayIndex]?.items?.[itemIndex];
+    if (!recipe) return;
 
-    if (scheduledId) {
-      this.scheduleService.deleteRecipe(scheduledId).subscribe({
-        next: () => {},
-        error: () => {
-          const rollback = this.scheduledMap[dateKey] ?? [];
-          rollback.splice(itemIndex, 0, removed);
-          this.scheduledMap = {...this.scheduledMap, [dateKey]: [...rollback]};
-          if (!this.scheduledIdsMap[dateKey]) this.scheduledIdsMap[dateKey] = [];
-          this.scheduledIdsMap[dateKey].splice(itemIndex, 0, scheduledId);
-        }
-      });
+    this.scheduledModalDateKey = dateKey;
+    this.scheduledModalItemIndex = itemIndex;
+    this.scheduledModalRecipe = recipe;
+    this.showScheduledModal = true;
+  }
+
+  confirmRemoveScheduled() {
+    const dateKey = this.scheduledModalDateKey;
+    const idx = this.scheduledModalItemIndex;
+
+    if (!dateKey || idx === undefined || idx === null) return;
+
+    const scheduledId = this.scheduledIdsMap[dateKey]?.[idx];
+
+    if (!scheduledId) {
+      const arr = this.scheduledMap[dateKey] ?? [];
+      arr.splice(idx, 1);
+      this.scheduledMap = { ...this.scheduledMap, [dateKey]: [...arr] };
+      this.isRemovingScheduled = false;
+      this.closeScheduledModal();
+      this.showRemovedSuccessModal = true;
+      return;
     }
+
+    this.isRemovingScheduled = true;
+
+    this.scheduleService.deleteRecipe(scheduledId).subscribe({
+      next: () => {
+        this.isRemovingScheduled = false;
+        this.closeScheduledModal();
+        this.refreshPeriod();
+        this.showRemovedSuccessModal = true;
+      },
+      error: () => {
+        this.isRemovingScheduled = false;
+        this.closeScheduledModal();
+        this.refreshPeriod();
+        this.openError('Erro ao remover do cronograma', 'Por favor, tente novamente.');
+      }
+    });
+  }
+
+  closeRemovedSuccessModal() {
+    this.showRemovedSuccessModal = false;
   }
 
   onOpenScheduled(e: { dateKey: string; itemIndex: number; recipe: RecipeSummary }) {
@@ -324,6 +416,8 @@ export class ScheduleComponent implements OnInit {
   }
 
   closeScheduledModal() {
+    if (this.isRemovingScheduled) return;
+
     this.showScheduledModal = false;
     this.scheduledModalRecipe = undefined;
     this.scheduledModalDateKey = undefined;
@@ -335,28 +429,6 @@ export class ScheduleComponent implements OnInit {
     if (!id) return;
     this.closeScheduledModal();
     this.router.navigate(['/recipes', id]);
-  }
-
-  confirmRemoveScheduled() {
-    const dateKey = this.scheduledModalDateKey;
-    const idx = this.scheduledModalItemIndex;
-    if (!dateKey || idx === undefined || idx === null) return;
-
-    const scheduledId = this.scheduledIdsMap[dateKey]?.[idx];
-    if (scheduledId) {
-      this.scheduleService.deleteRecipe(scheduledId).subscribe(() => {
-        this.closeScheduledModal();
-        this.refreshPeriod();
-      }, () => {
-        this.closeScheduledModal();
-        this.refreshPeriod();
-      });
-    } else {
-      const arr = this.scheduledMap[dateKey] ?? [];
-      arr.splice(idx, 1);
-      this.scheduledMap = {...this.scheduledMap, [dateKey]: [...arr]};
-      this.closeScheduledModal();
-    }
   }
 
   formatWeekdayDate(d?: Date | string): string {

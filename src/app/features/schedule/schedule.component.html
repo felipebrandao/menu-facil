@@ -180,7 +180,10 @@
     <div class="bg-card-light dark:bg-card-dark rounded-lg shadow-xl w-full max-w-md mx-4 p-6 transform transition-all">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold text-text-light dark:text-text-dark">Adicionar ao Calendário</h2>
-        <button (click)="closeAddRecipeModal()" class="text-subtext-light dark:text-subtext-dark hover:text-red-500">
+        <button
+          (click)="closeAddRecipeModal()"
+          [disabled]="isAddingRecipe"
+          class="text-subtext-light dark:text-subtext-dark hover:text-red-500 disabled:opacity-50 disabled:cursor-not-allowed">
           <span class="material-icons">close</span>
         </button>
       </div>
@@ -192,28 +195,62 @@
 
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-subtext-light dark:text-subtext-dark mb-1"
-                 for="date">Data</label>
+          <label class="block text-sm font-medium text-subtext-light dark:text-subtext-dark mb-1" for="date">Data</label>
           <div class="relative">
             <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">calendar_today</span>
-            <input id="date" name="date" type="date"
-                   class="w-full pl-10 pr-4 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-md focus:ring-primary focus:border-primary"
-                   [(ngModel)]="modalDate"/>
+            <input
+              id="date"
+              name="date"
+              type="date"
+              class="w-full pl-10 pr-4 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-md focus:ring-primary focus:border-primary"
+              [(ngModel)]="modalDate"
+              [disabled]="isAddingRecipe"/>
           </div>
         </div>
       </div>
 
       <div class="mt-6 flex justify-end gap-2">
-        <button (click)="closeAddRecipeModal()"
-                class="px-4 py-2 rounded-md border border-border-light dark:border-border-dark text-sm">
+        <button
+          (click)="closeAddRecipeModal()"
+          [disabled]="isAddingRecipe"
+          class="px-4 py-2 rounded-md border border-border-light dark:border-border-dark text-sm disabled:opacity-50 disabled:cursor-not-allowed">
           Cancelar
         </button>
-        <button (click)="confirmAddFromModal()" class="px-4 py-2 rounded-md bg-primary text-white text-sm">
-          Adicionar
+        <button
+          (click)="confirmAddFromModal()"
+          [disabled]="isAddingRecipe || !modalRecipe || !modalDate"
+          class="px-4 py-2 rounded-md bg-primary text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+          <ng-container *ngIf="!isAddingRecipe; else addingSpinner">
+            Adicionar
+          </ng-container>
+
+          <ng-template #addingSpinner>
+            <svg class="h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
+            </svg>
+            Adicionando...
+          </ng-template>
         </button>
       </div>
     </div>
   </div>
+
+  <app-success-modal
+    *ngIf="showAddedSuccessModal"
+    title="Receita adicionada no cronograma!"
+    message=""
+    buttonText="OK"
+    (close)="closeAddedSuccessModal()">
+  </app-success-modal>
+
+  <app-error-modal
+    *ngIf="showErrorModal"
+    [message]="errorMessage"
+    [details]="errorDetails"
+    (retry)="onRetry()"
+    (cancel)="onCancel()"
+  ></app-error-modal>
 
   <div *ngIf="showScheduledModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
     <div class="bg-card-light dark:bg-card-dark rounded-lg shadow-xl w-full max-w-md mx-4 p-6 transform transition-all">
@@ -235,10 +272,32 @@
         <button (click)="viewRecipeFromModal()" class="px-4 py-2 rounded-md bg-primary text-white text-sm">
           Ver Receita
         </button>
-        <button (click)="confirmRemoveScheduled()" class="px-4 py-2 rounded-md bg-red-500 text-white text-sm">
-          Remover
+        <button
+          type="button"
+          (click)="confirmRemoveScheduled()"
+          [disabled]="isRemovingScheduled"
+          class="group relative flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white
+         hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span [class.hidden]="isRemovingScheduled">Remover</span>
+
+          <span *ngIf="isRemovingScheduled" class="flex items-center gap-2">
+          <svg class="h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
+          </svg>
+          Removendo...
+        </span>
         </button>
       </div>
     </div>
   </div>
+
+  <app-success-modal
+    *ngIf="showRemovedSuccessModal"
+    [title]="'Receita removida com sucesso!'"
+    [message]="'A receita foi removida do cronograma.'"
+    [buttonText]="'OK'"
+    (close)="closeRemovedSuccessModal()"
+  ></app-success-modal>
 </main>
