@@ -1,12 +1,7 @@
 import { Routes } from '@angular/router';
-import { DashboardComponent } from './features/dashboard/dashboard.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-  {
-    path: 'dashboard',
-    component: DashboardComponent
-  },
+  { path: '', redirectTo: 'my-recipes', pathMatch: 'full' },
   {
     path: 'my-recipes',
     loadComponent: () =>
@@ -73,5 +68,5 @@ export const routes: Routes = [
         m => m.RecipeCategoriesComponent
       )
   },
-  { path: '**', redirectTo: 'dashboard' },
+  { path: '**', redirectTo: 'my-recipes' },
 ];

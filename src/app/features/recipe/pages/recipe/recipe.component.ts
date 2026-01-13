@@ -232,7 +232,7 @@ export class RecipeComponent implements OnInit {
   }
 
   onBackToList() {
-    this.router.navigate(['/recipes']);
+    this.router.navigate(['/my-recipes']);
   }
 
   onRetry() {
@@ -308,4 +308,7 @@ export class RecipeComponent implements OnInit {
     this.ingredientsFormComponent?.onIngredientModalSaved(savedIngredient);
   }
 
+  get isBlocking(): boolean {
+    return this.loading || this.isSaving;
+  }
 }
