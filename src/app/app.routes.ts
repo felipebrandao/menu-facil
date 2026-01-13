@@ -68,5 +68,12 @@ export const routes: Routes = [
         m => m.RecipeCategoriesComponent
       )
   },
+  {
+    path: 'shopping-list',
+    loadComponent: () =>
+      import('./features/shopping-list/pages/shopping-list/shopping-list.component').then(
+        (m) => m.ShoppingListComponent
+      ),
+  },
   { path: '**', redirectTo: 'my-recipes' },
 ];

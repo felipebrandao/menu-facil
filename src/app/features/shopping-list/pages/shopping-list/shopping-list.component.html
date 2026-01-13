@@ -1,0 +1,251 @@
+<main class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full flex flex-col lg:flex-row gap-8">
+  <div class="flex-1">
+    <section class="mb-10">
+      <h1 class="text-4xl font-extrabold mb-4 tracking-tight">Lista de Compras</h1>
+      <p class="text-subtext-light dark:text-subtext-dark text-lg leading-relaxed max-w-2xl">
+        Organize suas compras de forma inteligente. Planeje suas refeições para gerar sua lista automaticamente.
+      </p>
+    </section>
+
+    <section
+      class="mb-8 space-y-6 bg-surface-light dark:bg-surface-dark p-6 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="space-y-2">
+          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Modo de Visualização</span>
+          <div class="bg-gray-100 dark:bg-gray-900 p-1.5 rounded-xl flex w-fit">
+            <button
+              type="button"
+              (click)="setView('weekly')"
+              class="px-8 py-2.5 rounded-lg text-sm transition-all"
+              [class.bg-white]="view === 'weekly'"
+              [class.dark:bg-gray-800]="view === 'weekly'"
+              [class.shadow-sm]="view === 'weekly'"
+              [class.text-primary]="view === 'weekly'"
+              [class.font-bold]="view === 'weekly'"
+              [class.text-gray-500]="view !== 'weekly'"
+              [class.dark:text-gray-400]="view !== 'weekly'"
+              [class.font-semibold]="view !== 'weekly'">
+              Visão Semanal
+            </button>
+            <button
+              type="button"
+              (click)="setView('monthly')"
+              class="px-8 py-2.5 rounded-lg text-sm transition-all"
+              [class.bg-white]="view === 'monthly'"
+              [class.dark:bg-gray-800]="view === 'monthly'"
+              [class.shadow-sm]="view === 'monthly'"
+              [class.text-primary]="view === 'monthly'"
+              [class.font-bold]="view === 'monthly'"
+              [class.text-gray-500]="view !== 'monthly'"
+              [class.dark:text-gray-400]="view !== 'monthly'"
+              [class.font-semibold]="view !== 'monthly'">
+              Visão Mensal
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-2 flex-1 max-w-sm">
+          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Período Selecionado</span>
+          <div class="relative group">
+            <div
+              class="flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl transition-colors">
+              <button
+                type="button"
+                (click)="prevPeriod()"
+                class="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500">
+                <span class="material-icons">chevron_left</span>
+              </button>
+
+              <span class="material-symbols-outlined text-primary">calendar_month</span>
+              <div class="flex items-center gap-2 text-sm font-semibold">
+                <span>{{ selectedRangeLabel }}</span>
+              </div>
+
+              <button
+                type="button"
+                (click)="nextPeriod()"
+                class="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 ml-auto">
+                <span class="material-icons">chevron_right</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    @if (isLoading) {
+      <div class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
+        <div class="flex items-center justify-between mb-6">
+          <app-skeleton [rows]="1" widthClass="w-56" heightClass="h-6"></app-skeleton>
+          <app-skeleton [rows]="1" widthClass="w-20" heightClass="h-6"></app-skeleton>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          @for (_ of [1,2,3,4,5,6]; track $index) {
+            <div class="space-y-4">
+              <div class="flex items-center gap-3 px-1">
+                <app-skeleton [rows]="1" widthClass="w-10" heightClass="h-10"></app-skeleton>
+                <app-skeleton [rows]="1" widthClass="w-32" heightClass="h-5"></app-skeleton>
+                <div class="ml-auto">
+                  <app-skeleton [rows]="1" widthClass="w-16" heightClass="h-5"></app-skeleton>
+                </div>
+              </div>
+
+              <div class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm p-4">
+                <app-skeleton [rows]="4" heightClass="h-5" [gap]="14" [randomWidth]="true"></app-skeleton>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    } @else if (isEmpty) {
+      <div class="flex flex-col items-center justify-center py-20 px-6 bg-surface-light dark:bg-surface-dark rounded-3xl border border-dashed border-gray-300 dark:border-gray-800">
+        <div class="relative mb-8">
+          <div class="w-48 h-48 bg-gray-50 dark:bg-gray-900/50 rounded-full flex items-center justify-center">
+            <span class="material-symbols-outlined text-[80px] text-gray-300 dark:text-gray-700">shopping_basket</span>
+          </div>
+          <div class="absolute -bottom-2 -right-2 bg-surface-light dark:bg-surface-dark p-3 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800">
+            <span class="material-icons text-primary text-3xl">search</span>
+          </div>
+        </div>
+
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Sua lista está vazia</h2>
+        <p class="text-subtext-light dark:text-subtext-dark text-center max-w-md mb-8">
+          Não encontramos nenhuma receita para o período selecionado. Comece planejando seu cronograma ou adicione receitas manualmente.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4">
+          <button
+            type="button"
+            routerLink="/schedule"
+            class="px-8 py-3.5 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 flex items-center gap-2">
+            <span class="material-icons text-xl">event_note</span>
+            Planejar cronograma
+          </button>
+        </div>
+
+        @if (errorMessage) {
+          <p class="mt-6 text-sm text-red-600 dark:text-red-400">
+            {{ errorMessage }}
+          </p>
+        }
+      </div>
+    } @else {
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        @for (category of categories; track category.id) {
+          <div class="category-card space-y-4">
+            <div class="flex items-center gap-3 px-1">
+              <h3 class="font-bold text-lg text-gray-800 dark:text-gray-100">{{ category.name }}</h3>
+              <span
+                class="ml-auto text-xs font-bold px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-gray-500">
+                {{ formatItemsCount(category.items.length) }}
+              </span>
+            </div>
+
+            <div class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+              <div class="divide-y divide-gray-100 dark:divide-gray-800">
+                @for (item of category.items; track item.id) {
+                  <label
+                    class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors group">
+                    <span
+                      class="font-medium"
+                      [class.line-through]="item.checked"
+                      [class.text-gray-400]="item.checked"
+                      [class.dark:text-gray-500]="item.checked"
+                      [class.text-subtext-light]="!item.checked"
+                      [class.dark:text-subtext-dark]="!item.checked">
+                      {{ item.label }}
+                    </span>
+
+                    <input
+                      type="checkbox"
+                      class="w-5 h-5 rounded-full border-gray-300 dark:border-gray-700 text-secondary focus:ring-secondary/20 transition-all cursor-pointer"
+                      [checked]="item.checked"
+                      (change)="toggleItem(category.id, item.id)" />
+                  </label>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <aside class="w-full lg:w-80 space-y-6">
+    <div
+      class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm sticky top-28"
+      [class.opacity-60]="isEmpty"
+      [class.pointer-events-none]="isEmpty">
+      <h4 class="font-bold mb-6 flex items-center gap-2" [class.text-gray-400]="isEmpty" [class.dark:text-gray-500]="isEmpty" [class.text-gray-800]="!isEmpty" [class.dark:text-gray-100]="!isEmpty">
+        <span class="material-icons">ios_share</span>
+        Ações da Lista
+      </h4>
+
+      <div class="flex flex-col gap-3">
+        <button
+          type="button"
+          (click)="exportPdf()"
+          [disabled]="isEmpty"
+          class="flex items-center justify-between gap-3 w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl font-semibold text-sm"
+          [class.cursor-not-allowed]="isEmpty"
+          [class.text-gray-400]="isEmpty"
+          [class.dark:text-gray-600]="isEmpty"
+          [ngClass]="{
+            'hover:bg-gray-100': !isEmpty,
+            'dark:hover:bg-gray-800': !isEmpty
+          }">
+          <div class="flex items-center gap-3">
+            <span class="material-icons" [class.text-blue-600]="!isEmpty" [class.dark:text-blue-400]="!isEmpty" [class.text-gray-300]="isEmpty" [class.dark:text-gray-700]="isEmpty">picture_as_pdf</span>
+            Exportar PDF
+          </div>
+          <span class="material-icons text-gray-300 text-sm">download</span>
+        </button>
+
+        <button
+          type="button"
+          (click)="exportExcel()"
+          [disabled]="isEmpty"
+          class="flex items-center justify-between gap-3 w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl font-semibold text-sm"
+          [class.cursor-not-allowed]="isEmpty"
+          [class.text-gray-400]="isEmpty"
+          [class.dark:text-gray-600]="isEmpty"
+          [ngClass]="{
+            'hover:bg-gray-100': !isEmpty,
+            'dark:hover:bg-gray-800': !isEmpty
+          }">
+          <div class="flex items-center gap-3">
+            <span class="material-icons" [class.text-green-600]="!isEmpty" [class.dark:text-green-400]="!isEmpty" [class.text-gray-300]="isEmpty" [class.dark:text-gray-700]="isEmpty">table_view</span>
+            Exportar Excel
+          </div>
+          <span class="material-icons text-gray-300 text-sm">download</span>
+        </button>
+
+        <hr class="my-3 border-gray-100 dark:border-gray-800" />
+
+        <button
+          type="button"
+          (click)="sendToApp()"
+          [disabled]="isEmpty"
+          class="w-full flex flex-col items-center gap-3 px-6 py-8 rounded-2xl transition-all group"
+          [ngClass]="{
+            'bg-primary text-white hover:opacity-90 shadow-xl shadow-primary/20': !isEmpty,
+            'cursor-not-allowed bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-500': isEmpty
+          }">
+          <div class="p-3 rounded-full" [ngClass]="{
+            'bg-white/20 group-hover:scale-110 transition-transform': !isEmpty,
+            'bg-gray-300 dark:bg-gray-900': isEmpty
+          }">
+            <span class="material-icons text-2xl">{{ isEmpty ? 'smartphone_disabled' : 'smartphone' }}</span>
+          </div>
+          <div class="text-center">
+            <p class="font-bold">Enviar para o App</p>
+            <p class="text-[10px] uppercase tracking-widest mt-1">
+              {{ isEmpty ? 'Nenhum item para enviar' : 'Sincronização Instantânea' }}
+            </p>
+          </div>
+        </button>
+      </div>
+    </div>
+  </aside>
+</main>
