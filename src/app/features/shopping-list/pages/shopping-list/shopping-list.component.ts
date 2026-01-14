@@ -2,11 +2,12 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { catchError, finalize, of } from 'rxjs';
+import { ShoppingListService } from '../../services/shopping-list.service';
 import {
+  ShoppingListRecipeResponse,
   ShoppingListResponse,
-  ShoppingListService,
   ShoppingListView,
-} from '../../services/shopping-list.service';
+} from '../../models/shopping-list.models';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
 
 type ShoppingListItem = {
@@ -19,6 +20,12 @@ type ShoppingListCategory = {
   id: string;
   name: string;
   items: ShoppingListItem[];
+};
+
+type ShoppingListRecipeVM = {
+  id: string;
+  name: string;
+  occurrences: number;
 };
 
 @Component({
@@ -43,6 +50,21 @@ export class ShoppingListComponent implements OnInit {
   response: ShoppingListResponse | null = null;
 
   categories: ShoppingListCategory[] = [];
+  recipes: ShoppingListRecipeVM[] = [];
+
+  isRecipesExpanded = true;
+
+  private readonly categoryBorderPalette = [
+    'border-orange-500',
+    'border-red-500',
+    'border-blue-500',
+    'border-purple-500',
+    'border-pink-500',
+    'border-amber-500',
+    'border-teal-500',
+    'border-emerald-500',
+    'border-cyan-500',
+  ] as const;
 
   constructor(
     private readonly shoppingListService: ShoppingListService,
@@ -55,8 +77,12 @@ export class ShoppingListComponent implements OnInit {
 
   get isEmpty(): boolean {
     if (!this.response) return false;
-    if (!this.categories.length) return true;
-    return this.categories.every((c) => !c.items || c.items.length === 0);
+
+    const hasItems = this.categories.some((c) => (c.items?.length ?? 0) > 0);
+    const hasRecipes = this.recipes.length > 0;
+
+    // vazio quando não tem categorias/itens E não tem receitas
+    return !hasItems && !hasRecipes;
   }
 
   setView(view: ShoppingListView): void {
@@ -127,6 +153,7 @@ export class ShoppingListComponent implements OnInit {
             view: this.view,
             start: requestParams.view === 'weekly' ? requestParams.start : '',
             end: '',
+            recipes: [],
             categories: [],
           });
         }),
@@ -138,6 +165,7 @@ export class ShoppingListComponent implements OnInit {
       .subscribe({
         next: (res) => {
           this.response = res;
+          this.recipes = this.mapResponseToRecipes(res);
           this.categories = this.mapResponseToCategories(res);
           this.isLoading = false;
           this.cdr.markForCheck();
@@ -175,6 +203,14 @@ export class ShoppingListComponent implements OnInit {
     const mm = d.toLocaleString('pt-BR', { month: 'long' });
     const month = mm.charAt(0).toUpperCase() + mm.slice(1);
     return `${dd} de ${month}`;
+  }
+
+  private mapResponseToRecipes(res: ShoppingListResponse): ShoppingListRecipeVM[] {
+    return (res.recipes ?? []).map((r: ShoppingListRecipeResponse) => ({
+      id: r.recipeId,
+      name: (r.recipeName || '').trim() || 'Receita',
+      occurrences: Number(r.occurrences ?? 0),
+    }));
   }
 
   private mapResponseToCategories(res: ShoppingListResponse): ShoppingListCategory[] {
@@ -232,5 +268,46 @@ export class ShoppingListComponent implements OnInit {
 
   sendToApp(): void {
     console.log('Enviar para App');
+  }
+
+  sendToWhatsApp(): void {
+    const lines: string[] = [];
+
+    if (this.selectedRangeLabel) {
+      lines.push(`Lista de compras (${this.selectedRangeLabel})`);
+      lines.push('');
+    }
+
+    // agrupa por categoria
+    for (const category of this.categories) {
+      if (!category.items?.length) continue;
+      lines.push(`*${category.name}*`);
+      for (const item of category.items) {
+        // não envia itens marcados
+        if (item.checked) continue;
+        lines.push(`- ${item.label}`);
+      }
+      lines.push('');
+    }
+
+    const text = encodeURIComponent(lines.join('\n').trim());
+    // wa.me funciona tanto em mobile quanto desktop
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  }
+
+  getCategoryBorderClass(categoryId: string): string {
+    const id = String(categoryId ?? '');
+
+    // hash simples e estável para distribuir cores entre categorias
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+    }
+
+    return this.categoryBorderPalette[hash % this.categoryBorderPalette.length];
+  }
+
+  toggleRecipes(): void {
+    this.isRecipesExpanded = !this.isRecipesExpanded;
   }
 }

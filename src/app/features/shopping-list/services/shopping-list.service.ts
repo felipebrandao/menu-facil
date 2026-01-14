@@ -2,30 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-
-export type ShoppingListItemResponse = {
-  ingredientId: string;
-  ingredientName: string;
-  quantity: number;
-  unitId: string;
-  unitName: string;
-  unitAbbreviation: string;
-};
-
-export type ShoppingListCategoryResponse = {
-  categoryId: string;
-  categoryName: string;
-  items: ShoppingListItemResponse[];
-};
-
-export type ShoppingListResponse = {
-  view: string;
-  start: string; // ISO date
-  end: string; // ISO date
-  categories: ShoppingListCategoryResponse[];
-};
-
-export type ShoppingListView = 'weekly' | 'monthly';
+import { ShoppingListResponse, ShoppingListView } from '../models/shopping-list.models';
 
 @Injectable({
   providedIn: 'root',
@@ -56,11 +33,17 @@ export class ShoppingListService {
               view: params.view,
               start: params.start ?? '',
               end: '',
+              recipes: [],
               categories: [],
             };
           }
 
-          return res.body;
+          // garante defaults para evitar NPE no componente
+          return {
+            ...res.body,
+            recipes: res.body.recipes ?? [],
+            categories: res.body.categories ?? [],
+          };
         })
       );
   }
