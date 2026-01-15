@@ -10,20 +10,22 @@
         <div class="relative">
           <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
           <input [(ngModel)]="filterQuery"
+                 (ngModelChange)="onFilterQueryChange($event)"
                  class="w-full pl-10 pr-4 py-2 bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-md focus:ring-primary focus:border-primary"
                  placeholder="Pesquisa rápida de receitas" type="text"/>
         </div>
 
         <div>
           <p class="text-sm font-medium text-subtext-light mb-2">Filtrar por categoria:</p>
-          <div class="flex flex-wrap gap-2">
-            <button *ngFor="let c of categories"
-                    (click)="filterCategory = c"
-                    [ngClass]="{'bg-primary/10 text-primary dark:bg-primary/20': filterCategory===c, 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300': filterCategory!==c}"
-                    class="px-4 py-1.5 text-sm font-medium rounded-full">
+          <select
+            class="w-full bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-md px-3 py-2 text-sm focus:ring-primary focus:border-primary"
+            [ngModel]="filterCategory"
+            (ngModelChange)="onFilterCategoryChange($event)"
+          >
+            <option *ngFor="let c of categories; trackBy: trackByCategory" [value]="c">
               {{ c }}
-            </button>
-          </div>
+            </option>
+          </select>
         </div>
 
         <div class="space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">

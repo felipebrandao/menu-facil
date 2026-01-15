@@ -23,12 +23,7 @@
       <span class="text-sm font-medium text-subtle-text-light dark:text-subtle-text-dark">Filtrar por:</span>
       <select (change)="onCategoryChange($any($event.target).value)" class="rounded-md border border-border-light dark:border-border-dark bg-background-light dark:bg-card-dark text-sm">
         <option>Todas as categorias</option>
-        <option>Prato Principal</option>
-        <option>Lanche</option>
-        <option>Sobremesa</option>
-        <option>Vegetariano</option>
-        <option>Salada</option>
-        <option>Café da Manhã</option>
+        <option *ngFor="let c of this.categories; trackBy: trackByCategory" [value]="c">{{ c }}</option>
       </select>
     </div>
 

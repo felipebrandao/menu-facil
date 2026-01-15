@@ -6,6 +6,7 @@ import {FormsModule} from '@angular/forms';
 import {ScheduleWeeklyComponent} from './components/schedule-weekly/schedule-weekly.component';
 import {ScheduleMonthlyComponent} from './components/schedule-monthly/schedule-monthly.component';
 import {RecipeService} from '../../shared/services/recipe.service';
+import {RecipeCategoryService} from '../../shared/services/recipe-category.service';
 import {Router} from '@angular/router';
 import {format, parseISO, isValid} from 'date-fns';
 import {ptBR} from 'date-fns/locale';
@@ -34,7 +35,8 @@ export class ScheduleComponent implements OnInit {
 
   filterQuery = '';
   filterCategory = 'Todos';
-  categories = ['Todos', 'Café da Manhã', 'Almoço', 'Jantar', 'Lanche', 'Sobremesa'];
+  categories: string[] = ['Todos'];
+
   recipes: RecipeSummary[] = [];
 
   isLoadingRecipes = false;
@@ -79,12 +81,30 @@ export class ScheduleComponent implements OnInit {
   constructor(
     private scheduleService: ScheduleService,
     private recipeService: RecipeService,
+    private recipeCategoryService: RecipeCategoryService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
+    this.loadCategories();
     this.loadRecipes();
     this.refreshPeriod();
+  }
+
+  private loadCategories() {
+    this.recipeCategoryService.getAll().subscribe({
+      next: (list) => {
+        const names = (list || []).map(c => c.name).filter(Boolean);
+        this.categories = ['Todos', ...names];
+
+        if (this.filterCategory !== 'Todos' && !names.includes(this.filterCategory)) {
+          this.filterCategory = 'Todos';
+        }
+      },
+      error: () => {
+        this.categories = ['Todos'];
+      }
+    });
   }
 
   private openError(message: string, details = '') {
@@ -105,10 +125,19 @@ export class ScheduleComponent implements OnInit {
   private loadRecipes() {
     this.isLoadingRecipes = true;
 
-    this.recipeService.getRecipes({
+    const params: any = {
       page: this.recipesPage,
       limit: this.recipesLimit
-    }).subscribe({
+    };
+
+    const q = (this.filterQuery || '').trim();
+    if (q) params.query = q;
+
+    if (this.filterCategory && this.filterCategory !== 'Todos') {
+      params.category = this.filterCategory;
+    }
+
+    this.recipeService.getRecipes(params).subscribe({
       next: (resp: any) => {
         const list = Array.isArray(resp?.recipes) ? resp.recipes : [];
         this.recipes = list.map((r: any) => ({
@@ -134,6 +163,18 @@ export class ScheduleComponent implements OnInit {
         this.openError('Erro ao carregar receitas', 'Tente novamente.');
       }
     });
+  }
+
+  onFilterQueryChange(value: string) {
+    this.filterQuery = value;
+    this.recipesPage = 1;
+    this.loadRecipes();
+  }
+
+  onFilterCategoryChange(category: string) {
+    this.filterCategory = category;
+    this.recipesPage = 1;
+    this.loadRecipes();
   }
 
   prevRecipesPage() {
@@ -245,12 +286,9 @@ export class ScheduleComponent implements OnInit {
     });
   }
 
+  // Agora a lista já vem filtrada do backend.
   filteredRecipes(): RecipeSummary[] {
-    const q = (this.filterQuery || '').trim().toLowerCase();
-    return (this.recipes || []).filter(r =>
-      (this.filterCategory === 'Todos' || r.category === this.filterCategory) &&
-      (!q || (r.name || '').toLowerCase().includes(q))
-    );
+    return this.recipes || [];
   }
 
   openAddRecipeModal(r: RecipeSummary) {
@@ -446,5 +484,9 @@ export class ScheduleComponent implements OnInit {
 
     if (!isValid(date)) return '';
     return format(date, "EEEE, d 'de' MMMM 'de' yyyy", {locale: ptBR});
+  }
+
+  trackByCategory(_index: number, c: string) {
+    return c;
   }
 }

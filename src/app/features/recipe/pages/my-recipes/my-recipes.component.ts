@@ -5,6 +5,7 @@ import { RecipeService } from '../../../../shared/services/recipe.service';
 import { Router } from '@angular/router';
 import { RecipeCardComponent } from '../../../../shared/components/recipe-card/recipe-card.component';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
+import { RecipeCategoryService } from '../../../../shared/services/recipe-category.service';
 
 @Component({
   selector: 'app-my-recipes',
@@ -22,6 +23,8 @@ export class MyRecipesComponent implements OnInit {
   recipes: RecipeSummary[] = [];
   filtered: RecipeSummary[] = [];
 
+  categories: string[] = [];
+
   query = '';
   category = 'Todas as categorias';
   sort = 'recent';
@@ -35,11 +38,24 @@ export class MyRecipesComponent implements OnInit {
 
   constructor(
     private recipeService: RecipeService,
+    private recipeCategoryService: RecipeCategoryService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
+    this.loadCategories();
     this.loadRecipes();
+  }
+
+  private loadCategories() {
+    this.recipeCategoryService.getAll().subscribe({
+      next: (list) => {
+        this.categories = (list || []).map(c => c.name).filter(Boolean);
+      },
+      error: () => {
+        this.categories = [];
+      }
+    });
   }
 
   loadRecipes(): void {
@@ -144,5 +160,9 @@ export class MyRecipesComponent implements OnInit {
     }
     for (let i = start; i <= end; i++) pages.push(i);
     return pages;
+  }
+
+  trackByCategory(_index: number, c: string) {
+    return c;
   }
 }
