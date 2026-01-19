@@ -1,7 +1,9 @@
-/* `src/app/features/schedule/schedule.component.css` */
+
 :host { display: block; }
+
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156,163,175,0.6); border-radius: 8px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(51, 65, 85, 0.9); border-radius: 10px; }
+
 .translate-x-full { transform: translateX(100%); transition: transform .25s ease-in-out; }
 .translate-x-0 { transform: translateX(0); transition: transform .25s ease-in-out; }
-

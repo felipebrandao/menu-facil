@@ -22,8 +22,8 @@
     <div class="flex items-center space-x-4">
       <span class="text-sm font-medium text-subtle-text-light dark:text-subtle-text-dark">Filtrar por:</span>
       <select (change)="onCategoryChange($any($event.target).value)" class="rounded-md border border-border-light dark:border-border-dark bg-background-light dark:bg-card-dark text-sm">
-        <option>Todas as categorias</option>
-        <option *ngFor="let c of this.categories; trackBy: trackByCategory" [value]="c">{{ c }}</option>
+        <option [value]="'Todas'">Todas as categorias</option>
+        <option *ngFor="let c of this.categories; trackBy: trackByCategory" [value]="c.id">{{ c.name }}</option>
       </select>
     </div>
 

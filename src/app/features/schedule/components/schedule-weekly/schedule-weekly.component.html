@@ -1,40 +1,47 @@
 <ng-container *ngIf="!isLoading; else weeklySkeleton">
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-px bg-border-light dark:bg-border-dark border border-border-light dark:border-border-dark rounded-lg overflow-hidden">
-    <div *ngFor="let day of week; let i = index"
-         class="min-h-[12rem] p-1.5 flex flex-col transition-colors"
-         [ngClass]="{
-           'bg-gray-50 dark:bg-gray-800 opacity-70 grayscale': isPastDay(day.date),
-           'bg-card-light dark:bg-card-dark hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer': !isPastDay(day.date)
-         }"
-         (click)="!isPastDay(day.date) && emitOpen(i)"
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-px bg-border-light dark:bg-slate-700 border border-border-light dark:border-slate-700 rounded-lg overflow-hidden">
+    <div
+      *ngFor="let day of week; let i = index"
+      class="min-h-[12rem] p-1.5 flex flex-col transition-colors"
+      [ngClass]="{
+        'bg-gray-50 dark:bg-slate-900/30 opacity-70 grayscale': isPastDay(day.date),
+        'bg-card-light dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700/20 cursor-pointer': !isPastDay(day.date)
+      }"
+      (click)="!isPastDay(day.date) && emitOpen(i)"
     >
       <div class="flex items-center justify-between mb-2">
         <div>
-          <div class="text-sm font-semibold text-text-light dark:text-text-dark">
+          <div class="text-sm font-semibold text-text-light dark:text-white">
             {{ day.label }}
           </div>
         </div>
 
-        <span class="text-xs px-2 py-0.5 rounded-full"
-              [ngClass]="{
-                'bg-primary text-white': day.date.toDateString() === todayString,
-                'bg-gray-100 dark:bg-gray-700 text-subtext-light': day.date.toDateString() !== todayString
-              }">
+        <span
+          class="text-xs px-2 py-0.5 rounded-full"
+          [ngClass]="{
+            'bg-primary text-white': day.date.toDateString() === todayString,
+            'bg-gray-100 dark:bg-slate-700 text-subtext-light dark:text-slate-300': day.date.toDateString() !== todayString
+          }"
+        >
           {{ day.date | date:'dd/MM' }}
         </span>
       </div>
 
-      <div class="flex-grow space-y-2 overflow-y-auto">
-        <div *ngFor="let it of day.items; let j = index"
-             class="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-md text-xs text-blue-800 dark:text-blue-300 truncate cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900 flex justify-between items-center"
-             (click)="emitOpenItem(i, j)">
+      <div class="flex-grow space-y-2 overflow-y-auto custom-scrollbar">
+        <div
+          *ngFor="let it of day.items; let j = index"
+          class="bg-blue-100 dark:bg-blue-900/40 p-2 rounded-md text-xs text-blue-800 dark:text-blue-200 truncate cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900/60 flex justify-between items-center border border-transparent dark:border-blue-800/50"
+          (click)="emitOpenItem(i, j)"
+        >
           <div class="truncate">
             <p class="font-semibold truncate">{{ it.name }}</p>
-            <p class="text-[11px] text-subtext-light">{{ it.category }}</p>
+            <p class="text-[11px] text-subtext-light dark:text-blue-400">{{ it.category }}</p>
           </div>
-          <button (click)="emitRemove(i, j); $event.stopPropagation()"
-                  title="Remover"
-                  class="text-subtext-light hover:text-red-500 flex-shrink-0">
+          <button
+            (click)="emitRemove(i, j); $event.stopPropagation()"
+            title="Remover"
+            class="text-subtext-light dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 flex-shrink-0"
+          >
             <span class="material-icons text-sm">delete</span>
           </button>
         </div>
@@ -44,24 +51,25 @@
 </ng-container>
 
 <ng-template #weeklySkeleton>
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-px bg-border-light dark:bg-border-dark border border-border-light dark:border-border-dark rounded-lg overflow-hidden"
-       aria-hidden="true">
-    <div *ngFor="let _ of [1,2,3,4,5,6,7]"
-         class="min-h-[12rem] p-1.5 flex flex-col bg-card-light dark:bg-card-dark">
+  <div
+    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-px bg-border-light dark:bg-slate-700 border border-border-light dark:border-slate-700 rounded-lg overflow-hidden"
+    aria-hidden="true"
+  >
+    <div *ngFor="let _ of [1,2,3,4,5,6,7]" class="min-h-[12rem] p-1.5 flex flex-col bg-card-light dark:bg-slate-800">
       <div class="flex items-center justify-between mb-2">
         <app-skeleton [rows]="1" widthClass="w-16" heightClass="h-4" [gap]="0"></app-skeleton>
         <app-skeleton [rows]="1" widthClass="w-12" heightClass="h-5" [rounded]="true" [gap]="0"></app-skeleton>
       </div>
 
       <div class="space-y-2">
-        <div class="p-2 rounded-md bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark">
+        <div class="p-2 rounded-md bg-background-light dark:bg-slate-900 border border-border-light dark:border-slate-700">
           <app-skeleton [rows]="1" widthClass="w-3/4" heightClass="h-4" [gap]="0"></app-skeleton>
           <div class="mt-2">
             <app-skeleton [rows]="1" widthClass="w-1/2" heightClass="h-3" [gap]="0"></app-skeleton>
           </div>
         </div>
 
-        <div class="p-2 rounded-md bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark">
+        <div class="p-2 rounded-md bg-background-light dark:bg-slate-900 border border-border-light dark:border-slate-700">
           <app-skeleton [rows]="1" widthClass="w-4/5" heightClass="h-4" [gap]="0"></app-skeleton>
           <div class="mt-2">
             <app-skeleton [rows]="1" widthClass="w-2/5" heightClass="h-3" [gap]="0"></app-skeleton>

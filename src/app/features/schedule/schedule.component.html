@@ -1,210 +1,266 @@
-<main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <div class="lg:col-span-1">
-      <div class="space-y-6">
-        <div>
-          <h1 class="text-3xl font-bold">Monte seu Cronograma</h1>
-          <p class="text-subtext-light mt-1">Arraste ou adicione as receitas para montar seu plano semanal.</p>
-        </div>
+<main class="max-w-[1600px] mx-auto p-6 lg:p-8 flex flex-col lg:flex-row gap-8">
+  <aside class="w-full lg:w-80 flex-shrink-0">
+    <div class="lg:sticky lg:top-24 space-y-6">
+      <div>
+        <h1 class="text-2xl font-bold text-text-light dark:text-white">Monte seu Cronograma</h1>
+        <p class="text-sm text-subtext-light dark:text-slate-400 mt-1">
+          Arraste ou adicione as receitas para montar seu plano semanal.
+        </p>
+      </div>
 
+      <div class="space-y-4">
         <div class="relative">
-          <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
-          <input [(ngModel)]="filterQuery"
-                 (ngModelChange)="onFilterQueryChange($event)"
-                 class="w-full pl-10 pr-4 py-2 bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-md focus:ring-primary focus:border-primary"
-                 placeholder="Pesquisa rápida de receitas" type="text"/>
+          <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500">search</span>
+          <input
+            [(ngModel)]="filterQuery"
+            (ngModelChange)="onFilterQueryChange($event)"
+            class="w-full pl-10 pr-4 py-2 bg-card-light dark:bg-slate-800 border border-border-light dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white dark:placeholder-slate-500"
+            placeholder="Pesquisa rápida de receitas"
+            type="text"
+          />
         </div>
 
         <div>
-          <p class="text-sm font-medium text-subtext-light mb-2">Filtrar por categoria:</p>
+          <label class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider block mb-2">Filtrar por categoria</label>
           <select
-            class="w-full bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-md px-3 py-2 text-sm focus:ring-primary focus:border-primary"
-            [ngModel]="filterCategory"
+            class="w-full p-2 bg-card-light dark:bg-slate-800 border border-border-light dark:border-slate-700 rounded-lg outline-none dark:text-white focus:ring-2 focus:ring-primary"
+            [ngModel]="filterCategoryId"
             (ngModelChange)="onFilterCategoryChange($event)"
           >
-            <option *ngFor="let c of categories; trackBy: trackByCategory" [value]="c">
-              {{ c }}
+            <option [value]="'Todos'">Todos</option>
+            <option *ngFor="let c of categories; trackBy: trackByCategory" [value]="c.id">
+              {{ c.name }}
             </option>
           </select>
         </div>
+      </div>
 
-        <div class="space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
-          <ng-container *ngIf="isLoadingRecipes; else recipesList">
-            <div
-              *ngFor="let _ of [1,2,3,4,5]"
-              class="bg-card-light dark:bg-card-dark p-4 rounded-lg border border-border-light dark:border-border-dark shadow-sm flex justify-between items-start"
-              aria-hidden="true"
-            >
+      <div class="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
+        <ng-container *ngIf="isLoadingRecipes; else recipesList">
+          <div
+            *ngFor="let _ of [1,2,3,4,5]"
+            class="group relative bg-card-light dark:bg-slate-800 p-4 rounded-xl border border-border-light dark:border-slate-700 shadow-sm"
+            aria-hidden="true"
+          >
+            <div class="flex justify-between items-start">
               <div class="min-w-0 flex-1">
-                <app-skeleton
-                  [rows]="1"
-                  widthClass="w-44 sm:w-56"
-                  heightClass="h-5"
-                  [gap]="0"
-                ></app-skeleton>
-
+                <app-skeleton [rows]="1" widthClass="w-44" heightClass="h-5" [gap]="0"></app-skeleton>
                 <div class="mt-2">
-                  <app-skeleton
-                    [rows]="1"
-                    widthClass="w-28 sm:w-36"
-                    heightClass="h-4"
-                    [gap]="0"
-                  ></app-skeleton>
+                  <app-skeleton [rows]="1" widthClass="w-28" heightClass="h-4" [gap]="0"></app-skeleton>
                 </div>
               </div>
-
               <div class="ml-3 flex-shrink-0">
-                <app-skeleton
-                  [rows]="1"
-                  widthClass="w-6"
-                  heightClass="h-6"
-                  [gap]="0"
-                  [rounded]="true"
-                ></app-skeleton>
+                <app-skeleton [rows]="1" widthClass="w-8" heightClass="h-8" [rounded]="true" [gap]="0"></app-skeleton>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-template #recipesList>
+          <div
+            *ngFor="let r of filteredRecipes()"
+            class="group relative bg-card-light dark:bg-slate-800 p-4 rounded-xl border border-border-light dark:border-slate-700 hover:border-primary transition-all shadow-sm"
+          >
+            <div class="flex justify-between items-start">
+              <div class="min-w-0">
+                <h3 class="font-semibold text-text-light dark:text-white">{{ r.name }}</h3>
+                <p class="text-xs font-medium px-2 py-0.5 inline-flex mt-2 bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full">
+                  {{ r.category }}
+                </p>
+              </div>
+              <button
+                type="button"
+                (click)="openAddRecipeModal(r)"
+                class="w-8 h-8 rounded-full bg-gray-50 dark:bg-slate-700 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all"
+                aria-label="Adicionar receita"
+                title="Adicionar"
+              >
+                <span class="material-icons">add</span>
+              </button>
+            </div>
+          </div>
+        </ng-template>
+      </div>
+
+      <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-slate-700">
+        <button
+          type="button"
+          (click)="prevRecipesPage()"
+          [disabled]="recipesPage <= 1 || isLoadingRecipes"
+          class="flex items-center gap-1 text-sm text-subtext-light dark:text-slate-400 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span class="material-icons text-base">chevron_left</span>
+          <span>Anterior</span>
+        </button>
+
+        <span class="text-xs font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wider">Página {{ recipesPage }} de {{ recipesTotalPages }}</span>
+
+        <button
+          type="button"
+          (click)="nextRecipesPage()"
+          [disabled]="recipesPage >= recipesTotalPages || isLoadingRecipes"
+          class="flex items-center gap-1 text-sm text-subtext-light dark:text-slate-400 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span>Próxima</span>
+          <span class="material-icons text-base">chevron_right</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <section class="flex-grow bg-card-light dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/40 border border-border-light dark:border-slate-700 overflow-hidden">
+    <div class="p-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-gray-100 dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex items-center gap-4">
+        <div class="flex gap-1">
+          <button
+            type="button"
+            (click)="prevPeriod()"
+            class="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 text-subtext-light dark:text-slate-400"
+            aria-label="Período anterior"
+          >
+            <span class="material-icons">chevron_left</span>
+          </button>
+          <button
+            type="button"
+            (click)="nextPeriod()"
+            class="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 text-subtext-light dark:text-slate-400"
+            aria-label="Próximo período"
+          >
+            <span class="material-icons">chevron_right</span>
+          </button>
+        </div>
+        <h2 class="text-xl font-bold text-text-light dark:text-white">{{ selectedPeriodLabel }}</h2>
+      </div>
+
+      <div class="flex p-1 bg-gray-100 dark:bg-slate-900 rounded-lg">
+        <button
+          type="button"
+          (click)="setView('weekly')"
+          class="px-4 py-1.5 text-sm font-medium rounded-md transition-all"
+          [ngClass]="{
+            'bg-card-light dark:bg-slate-700 text-primary shadow-sm': viewMode === 'weekly',
+            'text-subtext-light dark:text-slate-400 hover:text-text-light dark:hover:text-white': viewMode !== 'weekly'
+          }"
+        >
+          Semanal
+        </button>
+        <button
+          type="button"
+          (click)="setView('monthly')"
+          class="px-4 py-1.5 text-sm font-medium rounded-md transition-all"
+          [ngClass]="{
+            'bg-card-light dark:bg-slate-700 text-primary shadow-sm': viewMode === 'monthly',
+            'text-subtext-light dark:text-slate-400 hover:text-text-light dark:hover:text-white': viewMode !== 'monthly'
+          }"
+        >
+          Mensal
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="viewMode === 'weekly'" class="p-6">
+      <app-schedule-weekly
+        [week]="week"
+        [recipes]="recipes"
+        [filterQuery]="filterQuery"
+        [filterCategory]="filterCategoryId"
+        [isLoading]="isLoadingSchedule"
+        (addToDay)="addToDay($event.recipe, $event.dayIndex)"
+        (removeFromDay)="removeFromDay($event.dayIndex, $event.itemIndex)"
+        (openItem)="onOpenScheduled($event)"
+      ></app-schedule-weekly>
+    </div>
+
+    <div *ngIf="viewMode === 'monthly'" class="p-6">
+      <app-schedule-monthly
+        [currentDate]="currentDate"
+        [recipes]="recipes"
+        [filterQuery]="filterQuery"
+        [filterCategory]="filterCategoryId"
+        [scheduledMap]="scheduledMap"
+        [selectedDateKey]="selectedMonthlyDateKey"
+        [isLoading]="isLoadingSchedule"
+        (selectDate)="onSelectMonthlyDate($event)"
+        (addToDate)="addToDate($event)"
+        (removeFromDate)="onRemoveFromDate($event)"
+        (openItem)="onOpenScheduled($event)"
+      ></app-schedule-monthly>
+
+      <div class="mt-6 rounded-2xl border border-gray-100 dark:border-slate-700 bg-gray-50/30 dark:bg-slate-900/30 overflow-hidden lg:hidden">
+        <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Selecionado</p>
+            <p class="text-sm font-bold text-text-light dark:text-white">
+              {{ formatDDMMYYYY(selectedMonthlyDateKey) }}
+            </p>
+          </div>
+          <span class="text-xs text-subtext-light dark:text-slate-400">{{ monthlyRecipesLabel(selectedMonthlyItems.length) }}</span>
+        </div>
+
+        <div class="p-4">
+          <ng-container *ngIf="selectedMonthlyItems.length; else emptySelectedDay">
+            <div class="space-y-2">
+              <div
+                *ngFor="let it of selectedMonthlyItems; let j = index"
+                class="bg-blue-100 dark:bg-blue-900/40 p-2 rounded-md text-xs text-blue-800 dark:text-blue-200 truncate cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900/60 flex justify-between items-center border border-transparent dark:border-blue-800/50"
+                (click)="onOpenScheduled({ dateKey: selectedMonthlyDateKey!, itemIndex: j, recipe: it })"
+                role="button"
+                tabindex="0"
+              >
+                <div class="truncate">
+                  <p class="font-semibold truncate">{{ it.name }}</p>
+                  <p class="text-[11px] text-subtext-light dark:text-blue-400">{{ it.category }}</p>
+                </div>
+                <button
+                  type="button"
+                  (click)="onRemoveFromDate({ dateKey: selectedMonthlyDateKey!, itemIndex: j }); $event.stopPropagation()"
+                  class="text-subtext-light dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 flex-shrink-0"
+                  aria-label="Remover"
+                  title="Remover"
+                >
+                  <span class="material-icons text-sm">delete</span>
+                </button>
               </div>
             </div>
           </ng-container>
 
-          <ng-template #recipesList>
-            <div *ngFor="let r of filteredRecipes()"
-                 class="bg-card-light dark:bg-card-dark p-4 rounded-lg border border-border-light dark:border-border-dark shadow-sm flex justify-between items-start">
-              <div>
-                <h3 class="font-semibold">{{ r.name }}</h3>
-                <p class="text-sm text-subtext-light">{{ r.category }}</p>
-              </div>
-              <button (click)="openAddRecipeModal(r)"
-                      class="text-subtext-light dark:text-subtext-dark hover:text-primary dark:hover:text-primary">
-                <span class="material-icons">add_circle_outline</span>
-              </button>
+          <ng-template #emptySelectedDay>
+            <div class="text-center py-6">
+              <p class="text-sm text-subtext-light dark:text-slate-400">Nenhuma receita agendada para este dia.</p>
             </div>
           </ng-template>
         </div>
-        <div class="mt-4 flex items-center justify-between gap-3">
-          <button
-            type="button"
-            (click)="prevRecipesPage()"
-            [disabled]="recipesPage <= 1 || isLoadingRecipes"
-            class="px-3 py-2 rounded-md border border-border-light dark:border-border-dark text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
-          >
-            <span class="material-icons text-base align-middle">chevron_left</span>
-            <span class="align-middle">Anterior</span>
-          </button>
-
-          <div class="text-sm text-subtext-light dark:text-subtext-dark whitespace-nowrap">
-            Página {{ recipesPage }} de {{ recipesTotalPages }}
-          </div>
-
-          <button
-            type="button"
-            (click)="nextRecipesPage()"
-            [disabled]="recipesPage >= recipesTotalPages || isLoadingRecipes"
-            class="px-3 py-2 rounded-md border border-border-light dark:border-border-dark text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
-          >
-            <span class="align-middle">Próxima</span>
-            <span class="material-icons text-base align-middle">chevron_right</span>
-          </button>
-        </div>
       </div>
     </div>
-
-    <div class="lg:col-span-2">
-      <div class="bg-card-light dark:bg-card-dark p-6 rounded-lg shadow-sm">
-        <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-          <div class="flex items-center space-x-2">
-            <button (click)="prevPeriod()" class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
-              <span class="material-icons text-xl">chevron_left</span>
-            </button>
-            <h2 class="text-xl font-semibold min-w-[200px] text-center whitespace-nowrap">
-              {{ selectedPeriodLabel }}
-            </h2>
-            <button (click)="nextPeriod()" class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
-              <span class="material-icons text-xl">chevron_right</span>
-            </button>
-          </div>
-
-          <div class="flex items-center justify-between flex-wrap gap-1 w-full">
-            <div class="flex flex-1 justify-center">
-              <div class="flex rounded-md border border-border-light dark:border-border-dark">
-                <button
-                  (click)="setView('weekly')"
-                  [ngClass]="{
-                    'px-3 py-1.5 text-sm rounded-l-md': true,
-                    'bg-primary text-white': viewMode === 'weekly',
-                    'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600': viewMode !== 'weekly'
-                  }">
-                  Semanal
-                </button>
-                <button
-                  (click)="setView('monthly')"
-                  [ngClass]="{
-                    'px-3 py-1.5 text-sm rounded-r-md': true,
-                    'bg-primary text-white': viewMode === 'monthly',
-                    'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600': viewMode !== 'monthly'
-                  }">
-                  Mensal
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div *ngIf="viewMode === 'weekly'">
-          <app-schedule-weekly
-            [week]="week"
-            [recipes]="recipes"
-            [filterQuery]="filterQuery"
-            [filterCategory]="filterCategory"
-            [isLoading]="isLoadingSchedule"
-            (addToDay)="addToDay($event.recipe, $event.dayIndex)"
-            (removeFromDay)="removeFromDay($event.dayIndex, $event.itemIndex)"
-            (openItem)="onOpenScheduled($event)"
-          ></app-schedule-weekly>
-        </div>
-
-        <div *ngIf="viewMode === 'monthly'">
-          <app-schedule-monthly
-            [currentDate]="currentDate"
-            [recipes]="recipes"
-            [filterQuery]="filterQuery"
-            [filterCategory]="filterCategory"
-            [scheduledMap]="scheduledMap"
-            [isLoading]="isLoadingSchedule"
-            (addToDate)="addToDate($event)"
-            (removeFromDate)="onRemoveFromDate($event)"
-            (openItem)="onOpenScheduled($event)"
-          ></app-schedule-monthly>
-        </div>
-      </div>
-    </div>
-  </div>
+  </section>
 
   <div *ngIf="showRecipeModal" class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center">
-    <div class="bg-card-light dark:bg-card-dark rounded-lg shadow-xl w-full max-w-md mx-4 p-6 transform transition-all">
+    <div class="bg-card-light dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-md mx-4 p-6 transform transition-all border border-border-light dark:border-slate-700">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-text-light dark:text-text-dark">Adicionar ao Calendário</h2>
+        <h2 class="text-xl font-bold text-text-light dark:text-white">Adicionar ao Calendário</h2>
         <button
           (click)="closeAddRecipeModal()"
           [disabled]="isAddingRecipe"
-          class="text-subtext-light dark:text-subtext-dark hover:text-red-500 disabled:opacity-50 disabled:cursor-not-allowed">
+          class="text-subtext-light dark:text-slate-400 hover:text-red-500 disabled:opacity-50 disabled:cursor-not-allowed">
           <span class="material-icons">close</span>
         </button>
       </div>
 
-      <p class="text-subtext-light dark:text-subtext-dark mb-4">
+      <p class="text-subtext-light dark:text-slate-400 mb-4">
         Selecione uma data para adicionar a receita:
         <span class="font-semibold text-primary">{{ modalRecipe?.name }}</span>
       </p>
 
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-subtext-light dark:text-subtext-dark mb-1" for="date">Data</label>
+          <label class="block text-sm font-medium text-subtext-light dark:text-slate-400 mb-1" for="date">Data</label>
           <div class="relative">
-            <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">calendar_today</span>
+            <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500">calendar_today</span>
             <input
               id="date"
               name="date"
               type="date"
-              class="w-full pl-10 pr-4 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-md focus:ring-primary focus:border-primary"
+              class="w-full pl-10 pr-4 py-2 bg-background-light dark:bg-slate-900 border border-border-light dark:border-slate-700 rounded-md focus:ring-primary focus:border-primary dark:text-white"
               [(ngModel)]="modalDate"
               [disabled]="isAddingRecipe"/>
           </div>
@@ -215,7 +271,7 @@
         <button
           (click)="closeAddRecipeModal()"
           [disabled]="isAddingRecipe"
-          class="px-4 py-2 rounded-md border border-border-light dark:border-border-dark text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+          class="px-4 py-2 rounded-md border border-border-light dark:border-slate-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed dark:text-white">
           Cancelar
         </button>
         <button
@@ -255,19 +311,18 @@
   ></app-error-modal>
 
   <div *ngIf="showScheduledModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-    <div class="bg-card-light dark:bg-card-dark rounded-lg shadow-xl w-full max-w-md mx-4 p-6 transform transition-all">
+    <div class="bg-card-light dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-md mx-4 p-6 transform transition-all border border-border-light dark:border-slate-700">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-text-light dark:text-text-dark">Agendamento</h2>
-        <button (click)="closeScheduledModal()" class="text-subtext-light dark:text-subtext-dark hover:text-red-500">
+        <h2 class="text-xl font-bold text-text-light dark:text-white">Agendamento</h2>
+        <button (click)="closeScheduledModal()" class="text-subtext-light dark:text-slate-400 hover:text-red-500">
           <span class="material-icons">close</span>
         </button>
       </div>
 
       <div class="mb-4">
-        <p class="font-semibold text-lg">{{ scheduledModalRecipe?.name }}</p>
-        <p class="text-sm text-subtext-light">{{ scheduledModalRecipe?.category }}</p>
-        <p class="text-sm text-subtext-light mt-2">Data: <span
-          class="font-medium">{{ formatWeekdayDate(scheduledModalDateKey) }}</span></p>
+        <p class="font-semibold text-lg dark:text-white">{{ scheduledModalRecipe?.name }}</p>
+        <p class="text-sm text-subtext-light dark:text-slate-400">{{ scheduledModalRecipe?.category }}</p>
+        <p class="text-sm text-subtext-light dark:text-slate-400 mt-2">Data: <span class="font-medium">{{ formatWeekdayDate(scheduledModalDateKey) }}</span></p>
       </div>
 
       <div class="flex justify-end gap-2 mt-6">
@@ -278,18 +333,16 @@
           type="button"
           (click)="confirmRemoveScheduled()"
           [disabled]="isRemovingScheduled"
-          class="group relative flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white
-         hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="group relative flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span [class.hidden]="isRemovingScheduled">Remover</span>
-
           <span *ngIf="isRemovingScheduled" class="flex items-center gap-2">
-          <svg class="h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
-          </svg>
-          Removendo...
-        </span>
+            <svg class="h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
+            </svg>
+            Removendo...
+          </span>
         </button>
       </div>
     </div>

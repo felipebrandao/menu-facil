@@ -32,6 +32,9 @@ export class ScheduleMonthlyComponent implements OnChanges {
   @Output() addToDate = new EventEmitter<{ recipe: RecipeSummary; dateKey: string }>();
   @Output() removeFromDate = new EventEmitter<{ dateKey: string; itemIndex: number }>();
   @Output() openItem = new EventEmitter<{ dateKey: string; itemIndex: number; recipe: RecipeSummary }>();
+  @Output() selectDate = new EventEmitter<string>();
+
+  @Input() selectedDateKey?: string;
 
   monthDays: DaySlot[] = [];
 
@@ -131,6 +134,12 @@ export class ScheduleMonthlyComponent implements OnChanges {
 
   emitOpen(dayIndex: number) {
     this.openDay.emit(dayIndex);
+
+    const d: Date | undefined = this.monthDays?.[dayIndex]?.date as Date | undefined;
+    if (!d) return;
+    if (this.monthDays?.[dayIndex]?.disabled) return;
+
+    this.selectDate.emit(this.dateKey(d));
   }
 
   emitRemove(dayIndex: number, itemIndex: number, ev?: MouseEvent) {
@@ -155,5 +164,19 @@ export class ScheduleMonthlyComponent implements OnChanges {
     const recipe = slot.items?.[itemIndex];
     if (!recipe) return;
     this.openItem.emit({ dateKey: key, itemIndex, recipe });
+  }
+
+  isSelected(day: DaySlot): boolean {
+    if (!this.selectedDateKey || !day?.date) return false;
+    return this.dateKey(day.date) === this.selectedDateKey;
+  }
+
+  dotsCount(items: RecipeSummary[] | null | undefined): number {
+    const len = items?.length ?? 0;
+    return len > 3 ? 3 : len;
+  }
+
+  dotsArray(items: RecipeSummary[] | null | undefined): any[] {
+    return Array(this.dotsCount(items));
   }
 }

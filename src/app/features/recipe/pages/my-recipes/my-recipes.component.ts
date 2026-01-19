@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RecipeSummary } from '../../../../shared/models/recipe.model';
+import { RecipeCategory, RecipeSummary } from '../../../../shared/models/recipe.model';
 import { RecipeService } from '../../../../shared/services/recipe.service';
 import { Router } from '@angular/router';
 import { RecipeCardComponent } from '../../../../shared/components/recipe-card/recipe-card.component';
@@ -23,10 +23,10 @@ export class MyRecipesComponent implements OnInit {
   recipes: RecipeSummary[] = [];
   filtered: RecipeSummary[] = [];
 
-  categories: string[] = [];
+  categories: RecipeCategory[] = [];
 
   query = '';
-  category = 'Todas as categorias';
+  selectedCategoryId = 'Todas';
   sort = 'recent';
 
   page = 1;
@@ -50,10 +50,14 @@ export class MyRecipesComponent implements OnInit {
   private loadCategories() {
     this.recipeCategoryService.getAll().subscribe({
       next: (list) => {
-        this.categories = (list || []).map(c => c.name).filter(Boolean);
+        this.categories = (list || []).filter(Boolean);
+
+        const hasSelected = this.selectedCategoryId !== 'Todas' && this.categories.some(c => c.id === this.selectedCategoryId);
+        if (this.selectedCategoryId !== 'Todas' && !hasSelected) this.selectedCategoryId = 'Todas';
       },
       error: () => {
         this.categories = [];
+        this.selectedCategoryId = 'Todas';
       }
     });
   }
@@ -65,7 +69,7 @@ export class MyRecipesComponent implements OnInit {
       limit: this.limit
     };
     if (this.query?.trim()) params.query = this.query.trim();
-    if (this.category && this.category !== 'Todas as categorias') params.category = this.category;
+    if (this.selectedCategoryId && this.selectedCategoryId !== 'Todas') params.categoryId = this.selectedCategoryId;
 
     this.recipeService.getRecipes(params).subscribe((res: any) => {
       const resp = res || {};
@@ -103,7 +107,7 @@ export class MyRecipesComponent implements OnInit {
   }
 
   onCategoryChange(value: string) {
-    this.category = value;
+    this.selectedCategoryId = value;
     this.page = 1;
     this.loadRecipes();
   }
@@ -162,7 +166,7 @@ export class MyRecipesComponent implements OnInit {
     return pages;
   }
 
-  trackByCategory(_index: number, c: string) {
-    return c;
+  trackByCategory(_index: number, c: RecipeCategory) {
+    return c.id;
   }
 }

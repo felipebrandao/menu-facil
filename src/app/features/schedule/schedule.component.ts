@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {ScheduleService} from './services/schedule.service';
-import {RecipeSummary} from '../../shared/models/recipe.model';
+import {RecipeCategory, RecipeSummary} from '../../shared/models/recipe.model';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ScheduleWeeklyComponent} from './components/schedule-weekly/schedule-weekly.component';
@@ -34,8 +34,8 @@ export class ScheduleComponent implements OnInit {
   viewMode: 'weekly' | 'monthly' = 'weekly';
 
   filterQuery = '';
-  filterCategory = 'Todos';
-  categories: string[] = ['Todos'];
+  filterCategoryId = 'Todos';
+  categories: RecipeCategory[] = [];
 
   recipes: RecipeSummary[] = [];
 
@@ -78,6 +78,13 @@ export class ScheduleComponent implements OnInit {
   isRemovingScheduled = false;
   showRemovedSuccessModal = false;
 
+  selectedMonthlyDateKey?: string;
+
+  get selectedMonthlyItems(): RecipeSummary[] {
+    if (!this.selectedMonthlyDateKey) return [];
+    return this.scheduledMap?.[this.selectedMonthlyDateKey] ?? [];
+  }
+
   constructor(
     private scheduleService: ScheduleService,
     private recipeService: RecipeService,
@@ -94,15 +101,16 @@ export class ScheduleComponent implements OnInit {
   private loadCategories() {
     this.recipeCategoryService.getAll().subscribe({
       next: (list) => {
-        const names = (list || []).map(c => c.name).filter(Boolean);
-        this.categories = ['Todos', ...names];
+        this.categories = (list || []).filter(Boolean);
 
-        if (this.filterCategory !== 'Todos' && !names.includes(this.filterCategory)) {
-          this.filterCategory = 'Todos';
+        const hasSelected = this.filterCategoryId !== 'Todos' && this.categories.some(c => c.id === this.filterCategoryId);
+        if (this.filterCategoryId !== 'Todos' && !hasSelected) {
+          this.filterCategoryId = 'Todos';
         }
       },
       error: () => {
-        this.categories = ['Todos'];
+        this.categories = [];
+        this.filterCategoryId = 'Todos';
       }
     });
   }
@@ -133,8 +141,8 @@ export class ScheduleComponent implements OnInit {
     const q = (this.filterQuery || '').trim();
     if (q) params.query = q;
 
-    if (this.filterCategory && this.filterCategory !== 'Todos') {
-      params.category = this.filterCategory;
+    if (this.filterCategoryId && this.filterCategoryId !== 'Todos') {
+      params.categoryId = this.filterCategoryId;
     }
 
     this.recipeService.getRecipes(params).subscribe({
@@ -171,8 +179,8 @@ export class ScheduleComponent implements OnInit {
     this.loadRecipes();
   }
 
-  onFilterCategoryChange(category: string) {
-    this.filterCategory = category;
+  onFilterCategoryChange(categoryId: string) {
+    this.filterCategoryId = categoryId;
     this.recipesPage = 1;
     this.loadRecipes();
   }
@@ -263,6 +271,8 @@ export class ScheduleComponent implements OnInit {
   private loadMonthly() {
     this.isLoadingSchedule = true;
 
+    const prevSelected = this.selectedMonthlyDateKey;
+
     const year = this.currentDate.getFullYear();
     const month = this.currentDate.getMonth() + 1;
     this.scheduleService.getMonthly(year, month).subscribe({
@@ -275,6 +285,18 @@ export class ScheduleComponent implements OnInit {
         });
         this.scheduledMap = map;
         this.scheduledIdsMap = idsMap;
+
+        const todayKey = this.formatKey(new Date());
+        const todayInThisMonth = new Date().getFullYear() === this.currentDate.getFullYear() && new Date().getMonth() === this.currentDate.getMonth();
+
+        if (prevSelected && this.scheduledMap[prevSelected] !== undefined) {
+          this.selectedMonthlyDateKey = prevSelected;
+        } else if (todayInThisMonth && this.scheduledMap[todayKey] !== undefined) {
+          this.selectedMonthlyDateKey = todayKey;
+        } else {
+          this.selectedMonthlyDateKey = this.formatKey(new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1));
+        }
+
         this.isLoadingSchedule = false;
       },
       error: () => {
@@ -486,7 +508,21 @@ export class ScheduleComponent implements OnInit {
     return format(date, "EEEE, d 'de' MMMM 'de' yyyy", {locale: ptBR});
   }
 
-  trackByCategory(_index: number, c: string) {
-    return c;
+  trackByCategory(_index: number, c: RecipeCategory) {
+    return c.id;
+  }
+
+  onSelectMonthlyDate(dateKey: string) {
+    this.selectedMonthlyDateKey = dateKey;
+  }
+
+  formatDDMMYYYY(dateKey?: string): string {
+    if (!dateKey) return '';
+    const d = this.parseKey(dateKey);
+    return this.toDDMM(d) + '/' + d.getFullYear();
+  }
+
+  monthlyRecipesLabel(count: number): string {
+    return `${count} ${count === 1 ? 'receita' : 'receitas'}`;
   }
 }

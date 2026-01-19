@@ -19,6 +19,7 @@ export class RecipeService {
 
   getRecipes(params?: {
     query?: string;
+    categoryId?: string;
     category?: string;
     page?: number;
     limit?: number;
@@ -28,7 +29,7 @@ export class RecipeService {
   }> {
     let httpParams = new HttpParams();
     if (params?.query) httpParams = httpParams.set('query', params.query);
-    if (params?.category) httpParams = httpParams.set('category', params.category);
+    if (params?.categoryId) httpParams = httpParams.set('categoryId', params.categoryId);
     if (params?.page) httpParams = httpParams.set('page', String(params.page));
     if (params?.limit) httpParams = httpParams.set('limit', String(params.limit));
 
