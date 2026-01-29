@@ -27,16 +27,25 @@
         </span>
       </div>
 
-      <div class="flex-grow space-y-2 overflow-y-auto custom-scrollbar">
+      <div
+        class="flex-grow space-y-2 overflow-y-auto custom-scrollbar"
+        cdkDropList
+        [cdkDropListData]="day.items"
+        (cdkDropListDropped)="onDrop($event, i)"
+      >
         <div
           *ngFor="let it of day.items; let j = index"
-          class="p-2 rounded-md text-xs truncate cursor-pointer flex justify-between items-center border"
+          class="p-2 rounded-md text-xs truncate flex justify-between items-center border"
           [ngClass]="[getCategoryColor(it.category).bg, getCategoryColor(it.category).text, getCategoryColor(it.category).border, getCategoryColor(it.category).hover]"
-          (click)="emitOpenItem(i, j)"
+          cdkDrag
+          [cdkDragDisabled]="isPastDay(day.date)"
         >
-          <div class="truncate">
-            <p class="font-semibold truncate">{{ it.name }}</p>
-            <p class="text-[11px] opacity-70">{{ it.category }}</p>
+          <div class="truncate flex items-center cursor-move" (click)="emitOpenItem(i, j)">
+            <span class="material-icons text-sm mr-2 opacity-40" cdkDragHandle>drag_indicator</span>
+            <div class="truncate">
+              <p class="font-semibold truncate">{{ it.name }}</p>
+              <p class="text-[11px] opacity-70">{{ it.category }}</p>
+            </div>
           </div>
           <button
             (click)="emitRemove(i, j); $event.stopPropagation()"

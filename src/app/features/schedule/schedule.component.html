@@ -169,6 +169,7 @@
         (addToDay)="addToDay($event.recipe, $event.dayIndex)"
         (removeFromDay)="removeFromDay($event.dayIndex, $event.itemIndex)"
         (openItem)="onOpenScheduled($event)"
+        (reorderDay)="onReorderDay($event)"
       ></app-schedule-weekly>
     </div>
 
@@ -185,6 +186,7 @@
         (addToDate)="addToDate($event)"
         (removeFromDate)="onRemoveFromDate($event)"
         (openItem)="onOpenScheduled($event)"
+        (reorderDate)="onReorderMonthly($event)"
       ></app-schedule-monthly>
 
       <div class="mt-6 rounded-2xl border border-gray-100 dark:border-slate-700 bg-gray-50/30 dark:bg-slate-900/30 overflow-hidden lg:hidden">
@@ -200,18 +202,25 @@
 
         <div class="p-4">
           <ng-container *ngIf="selectedMonthlyItems.length; else emptySelectedDay">
-            <div class="space-y-2">
+            <div
+              class="space-y-2"
+              cdkDropList
+              [cdkDropListData]="selectedMonthlyItems"
+              (cdkDropListDropped)="onReorderMonthlyMobile($event)"
+            >
               <div
                 *ngFor="let it of selectedMonthlyItems; let j = index"
-                class="p-2 rounded-md text-xs truncate cursor-pointer flex justify-between items-center border"
+                class="p-2 rounded-md text-xs truncate flex justify-between items-center border"
                 [ngClass]="getCategoryColorClasses(it.category)"
-                (click)="onOpenScheduled({ dateKey: selectedMonthlyDateKey!, itemIndex: j, recipe: it })"
-                role="button"
-                tabindex="0"
+                cdkDrag
+                [cdkDragDisabled]="isPastDate(selectedMonthlyDateKey)"
               >
-                <div class="truncate">
-                  <p class="font-semibold truncate">{{ it.name }}</p>
-                  <p class="text-[11px] opacity-70">{{ it.category }}</p>
+                <div class="truncate flex items-center cursor-move" (click)="onOpenScheduled({ dateKey: selectedMonthlyDateKey!, itemIndex: j, recipe: it })">
+                  <span class="material-icons text-sm mr-2 opacity-40" cdkDragHandle>drag_indicator</span>
+                  <div class="truncate">
+                    <p class="font-semibold truncate">{{ it.name }}</p>
+                    <p class="text-[11px] opacity-70">{{ it.category }}</p>
+                  </div>
                 </div>
                 <button
                   type="button"

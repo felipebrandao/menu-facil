@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from
 import { CommonModule } from '@angular/common';
 import { RecipeSummary } from '../../../../shared/models/recipe.model';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
+import { CdkDragDrop, moveItemInArray, DragDropModule } from '@angular/cdk/drag-drop';
 
 export interface DaySlot {
   date?: Date;
@@ -15,7 +16,7 @@ export interface DaySlot {
 @Component({
   selector: 'app-schedule-monthly',
   standalone: true,
-  imports: [CommonModule, SkeletonComponent],
+  imports: [CommonModule, SkeletonComponent, DragDropModule],
   templateUrl: './schedule-monthly.component.html',
   styleUrl: './schedule-monthly.component.css'
 })
@@ -33,6 +34,7 @@ export class ScheduleMonthlyComponent implements OnChanges {
   @Output() removeFromDate = new EventEmitter<{ dateKey: string; itemIndex: number }>();
   @Output() openItem = new EventEmitter<{ dateKey: string; itemIndex: number; recipe: RecipeSummary }>();
   @Output() selectDate = new EventEmitter<string>();
+  @Output() reorderDate = new EventEmitter<{ dateKey: string; newOrder: RecipeSummary[] }>();
 
   @Input() selectedDateKey?: string;
 
@@ -60,7 +62,7 @@ export class ScheduleMonthlyComponent implements OnChanges {
     }
   }
 
-  private dateKey(d: Date): string {
+  dateKey(d: Date): string {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
@@ -198,5 +200,17 @@ export class ScheduleMonthlyComponent implements OnChanges {
       hash = (hash * 31 + category.charCodeAt(i)) >>> 0;
     }
     return this.categoryColorPalette[hash % this.categoryColorPalette.length];
+  }
+
+  onDrop(event: CdkDragDrop<RecipeSummary[]>, dateKey: string) {
+    if (event.previousIndex === event.currentIndex) return;
+
+    const items = this.scheduledMap[dateKey];
+    if (!items) return;
+
+    const newItems = [...items];
+    moveItemInArray(newItems, event.previousIndex, event.currentIndex);
+
+    this.reorderDate.emit({ dateKey, newOrder: newItems });
   }
 }

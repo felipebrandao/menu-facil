@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RecipeSummary } from '../../../../shared/models/recipe.model';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
+import { CdkDragDrop, moveItemInArray, DragDropModule } from '@angular/cdk/drag-drop';
 
 export interface DaySlot {
   date: Date;
@@ -15,7 +16,8 @@ export interface DaySlot {
   standalone: true,
   imports: [
     CommonModule,
-    SkeletonComponent
+    SkeletonComponent,
+    DragDropModule
   ],
   templateUrl: './schedule-weekly.component.html',
   styleUrl: './schedule-weekly.component.css'
@@ -33,6 +35,7 @@ export class ScheduleWeeklyComponent {
   @Output() addToDay = new EventEmitter<{ recipe: RecipeSummary; dayIndex: number }>();
   @Output() removeFromDay = new EventEmitter<{ dayIndex: number; itemIndex: number }>();
   @Output() openItem = new EventEmitter<{ dateKey: string; itemIndex: number; recipe: RecipeSummary }>();
+  @Output() reorderDay = new EventEmitter<{ dayIndex: number; newOrder: RecipeSummary[] }>();
 
   todayString = new Date().toDateString();
 
@@ -54,6 +57,18 @@ export class ScheduleWeeklyComponent {
     const recipe = day.items?.[itemIndex];
     if (!recipe) return;
     this.openItem.emit({ dateKey, itemIndex, recipe });
+  }
+
+  onDrop(event: CdkDragDrop<RecipeSummary[]>, dayIndex: number) {
+    if (event.previousIndex === event.currentIndex) return;
+
+    const day = this.week[dayIndex];
+    if (!day) return;
+
+    const newItems = [...day.items];
+    moveItemInArray(newItems, event.previousIndex, event.currentIndex);
+
+    this.reorderDay.emit({ dayIndex, newOrder: newItems });
   }
 
   private formatKey(d: Date): string {

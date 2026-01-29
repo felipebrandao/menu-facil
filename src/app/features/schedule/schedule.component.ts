@@ -13,6 +13,8 @@ import {ptBR} from 'date-fns/locale';
 import {SkeletonComponent} from '../../shared/components/skeleton/skeleton.component';
 import {SuccessModalComponent} from '../../shared/components/success-modal/success-modal.component';
 import {ErrorModalComponent} from '../../shared/components/error-modal/error-modal.component';
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 type WeekDaySlot = { date: Date; label: string; short: string; items: RecipeSummary[] };
 
@@ -26,7 +28,8 @@ type WeekDaySlot = { date: Date; label: string; short: string; items: RecipeSumm
     ScheduleMonthlyComponent,
     SkeletonComponent,
     SuccessModalComponent,
-    ErrorModalComponent
+    ErrorModalComponent,
+    DragDropModule
   ],
   styleUrls: ['./schedule.component.css']
 })
@@ -522,6 +525,15 @@ export class ScheduleComponent implements OnInit {
     return this.toDDMM(d) + '/' + d.getFullYear();
   }
 
+  isPastDate(dateKey?: string): boolean {
+    if (!dateKey) return true;
+    const d = this.parseKey(dateKey);
+    d.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return d.getTime() < today.getTime();
+  }
+
   monthlyRecipesLabel(count: number): string {
     return `${count} ${count === 1 ? 'receita' : 'receitas'}`;
   }
@@ -554,5 +566,82 @@ export class ScheduleComponent implements OnInit {
       hash = (hash * 31 + category.charCodeAt(i)) >>> 0;
     }
     return this.categoryColorPalette[hash % this.categoryColorPalette.length];
+  }
+
+  onReorderDay(event: { dayIndex: number; newOrder: RecipeSummary[] }) {
+    const { dayIndex, newOrder } = event;
+    const day = this.week[dayIndex];
+    if (!day) return;
+
+    const dateKey = this.formatKey(day.date);
+    const scheduledIds = this.scheduledIdsMap[dateKey];
+
+    if (!scheduledIds || scheduledIds.length === 0) return;
+
+    const orderedIds = newOrder
+      .map(recipe => {
+        const index = day.items.findIndex(item => item.id === recipe.id);
+        return index >= 0 && index < scheduledIds.length ? scheduledIds[index] : null;
+      })
+      .filter((id): id is string => id !== null);
+
+    if (orderedIds.length === 0) return;
+
+    day.items = newOrder;
+
+    this.scheduleService.reorder(dateKey, orderedIds).subscribe({
+      next: () => {
+        this.loadWeekly();
+      },
+      error: () => {
+        this.loadWeekly();
+        this.openError('Erro ao reordenar receitas', 'Por favor, tente novamente.');
+      }
+    });
+  }
+
+  onReorderMonthly(event: { dateKey: string; newOrder: RecipeSummary[] }) {
+    const { dateKey, newOrder } = event;
+    if (!dateKey) return;
+
+    const scheduledIds = this.scheduledIdsMap[dateKey];
+    if (!scheduledIds || scheduledIds.length === 0) return;
+
+    const currentArr = this.scheduledMap[dateKey] ?? [];
+
+    const orderedIds = newOrder
+      .map(recipe => {
+        const index = currentArr.findIndex(item => item.id === recipe.id);
+        return index >= 0 && index < scheduledIds.length ? scheduledIds[index] : null;
+      })
+      .filter((id): id is string => id !== null);
+
+    if (orderedIds.length === 0) return;
+
+    this.scheduledMap = { ...this.scheduledMap, [dateKey]: [...newOrder] };
+
+    this.scheduleService.reorder(dateKey, orderedIds).subscribe({
+      next: () => {
+        this.loadMonthly();
+      },
+      error: () => {
+        this.loadMonthly();
+        this.openError('Erro ao reordenar receitas', 'Por favor, tente novamente.');
+      }
+    });
+  }
+
+  onReorderMonthlyMobile(event: CdkDragDrop<RecipeSummary[]>) {
+    if (!this.selectedMonthlyDateKey) return;
+    if (event.previousIndex === event.currentIndex) return;
+
+    const items = this.scheduledMap[this.selectedMonthlyDateKey];
+    if (!items) return;
+
+    const newItems = [...items];
+    const moved = newItems.splice(event.previousIndex, 1)[0];
+    newItems.splice(event.currentIndex, 0, moved);
+
+    this.onReorderMonthly({ dateKey: this.selectedMonthlyDateKey, newOrder: newItems });
   }
 }
