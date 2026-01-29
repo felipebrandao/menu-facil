@@ -22,7 +22,10 @@
 
   <div class="p-4">
     <h3 class="font-semibold text-lg">{{ title }}</h3>
-    <p class="text-sm text-subtext-light dark:text-subtext-dark">{{ category }}</p>
+    <p class="text-xs font-medium px-2 py-0.5 inline-flex mt-2 rounded-full"
+       [ngClass]="getCategoryBadgeClasses(category)">
+      {{ category }}
+    </p>
 
     <p *ngIf="author" class="text-text-light/70 dark:text-text-dark/70 text-sm font-medium leading-normal mt-1">
       por &#64;{{ author }}
