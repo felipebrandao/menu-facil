@@ -26,6 +26,7 @@ export class ScheduleMonthlyComponent implements OnChanges {
   @Input() filterQuery = '';
   @Input() filterCategory = 'Todos';
   @Input() scheduledMap: Record<string, RecipeSummary[]> = {};
+  @Input() connectedDropLists: string[] = [];
 
   @Input() isLoading = false;
 
@@ -35,6 +36,7 @@ export class ScheduleMonthlyComponent implements OnChanges {
   @Output() openItem = new EventEmitter<{ dateKey: string; itemIndex: number; recipe: RecipeSummary }>();
   @Output() selectDate = new EventEmitter<string>();
   @Output() reorderDate = new EventEmitter<{ dateKey: string; newOrder: RecipeSummary[] }>();
+  @Output() recipeDroppedFromList = new EventEmitter<{ recipe: RecipeSummary; dateKey: string }>();
 
   @Input() selectedDateKey?: string;
 
@@ -62,7 +64,7 @@ export class ScheduleMonthlyComponent implements OnChanges {
     }
   }
 
-  dateKey(d: Date): string {
+  public dateKey(d: Date): string {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
@@ -195,14 +197,28 @@ export class ScheduleMonthlyComponent implements OnChanges {
   ] as const;
 
   getCategoryColor(category: string): { bg: string; text: string; border: string; hover: string } {
+    const normalized = (category || '').trim().toLowerCase();
     let hash = 0;
-    for (let i = 0; i < category.length; i++) {
-      hash = (hash * 31 + category.charCodeAt(i)) >>> 0;
+    for (let i = 0; i < normalized.length; i++) {
+      hash = (hash * 31 + normalized.charCodeAt(i)) >>> 0;
     }
     return this.categoryColorPalette[hash % this.categoryColorPalette.length];
   }
 
   onDrop(event: CdkDragDrop<RecipeSummary[]>, dateKey: string) {
+    if (event.previousContainer !== event.container) {
+      const recipe = event.previousContainer.data[event.previousIndex];
+      if (recipe) {
+        const currentItems = this.scheduledMap[dateKey] || [];
+        this.scheduledMap = {
+          ...this.scheduledMap,
+          [dateKey]: [...currentItems, recipe]
+        };
+        this.recipeDroppedFromList.emit({ recipe, dateKey });
+      }
+      return;
+    }
+
     if (event.previousIndex === event.currentIndex) return;
 
     const items = this.scheduledMap[dateKey];

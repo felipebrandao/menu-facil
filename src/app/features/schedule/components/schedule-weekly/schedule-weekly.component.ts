@@ -28,6 +28,7 @@ export class ScheduleWeeklyComponent {
   @Input() recipes: RecipeSummary[] = [];
   @Input() filterQuery = '';
   @Input() filterCategory = 'Todos';
+  @Input() connectedDropLists: string[] = [];
 
   @Input() isLoading = false;
 
@@ -36,6 +37,7 @@ export class ScheduleWeeklyComponent {
   @Output() removeFromDay = new EventEmitter<{ dayIndex: number; itemIndex: number }>();
   @Output() openItem = new EventEmitter<{ dateKey: string; itemIndex: number; recipe: RecipeSummary }>();
   @Output() reorderDay = new EventEmitter<{ dayIndex: number; newOrder: RecipeSummary[] }>();
+  @Output() recipeDroppedFromList = new EventEmitter<{ recipe: RecipeSummary; dayIndex: number }>();
 
   todayString = new Date().toDateString();
 
@@ -60,10 +62,19 @@ export class ScheduleWeeklyComponent {
   }
 
   onDrop(event: CdkDragDrop<RecipeSummary[]>, dayIndex: number) {
-    if (event.previousIndex === event.currentIndex) return;
-
     const day = this.week[dayIndex];
     if (!day) return;
+
+    if (event.previousContainer !== event.container) {
+      const recipe = event.previousContainer.data[event.previousIndex];
+      if (recipe) {
+        day.items = [...day.items, recipe];
+        this.recipeDroppedFromList.emit({ recipe, dayIndex });
+      }
+      return;
+    }
+
+    if (event.previousIndex === event.currentIndex) return;
 
     const newItems = [...day.items];
     moveItemInArray(newItems, event.previousIndex, event.currentIndex);
@@ -91,9 +102,10 @@ export class ScheduleWeeklyComponent {
   ] as const;
 
   getCategoryColor(category: string): { bg: string; text: string; border: string; hover: string } {
+    const normalized = (category || '').trim().toLowerCase();
     let hash = 0;
-    for (let i = 0; i < category.length; i++) {
-      hash = (hash * 31 + category.charCodeAt(i)) >>> 0;
+    for (let i = 0; i < normalized.length; i++) {
+      hash = (hash * 31 + normalized.charCodeAt(i)) >>> 0;
     }
     return this.categoryColorPalette[hash % this.categoryColorPalette.length];
   }

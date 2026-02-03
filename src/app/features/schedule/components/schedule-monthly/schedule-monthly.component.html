@@ -70,7 +70,7 @@
     <div class="grid grid-cols-7 gap-px bg-border-light dark:bg-slate-700 border-x border-b border-border-light dark:border-slate-700 overflow-hidden min-h-[800px]">
       <div
         *ngFor="let day of monthDays; let i = index"
-        class="p-2 min-h-[160px] flex flex-col"
+        class="min-h-[160px] flex flex-col"
         [ngClass]="{
           'bg-gray-50/50 dark:bg-slate-900/20': day.disabled,
           'text-gray-400 dark:text-slate-600': day.disabled,
@@ -78,9 +78,8 @@
           'hover:bg-gray-100 dark:hover:bg-slate-700/20 transition-colors cursor-pointer bg-card-light dark:bg-slate-800': !day.disabled && !day.past,
           'bg-gray-50 dark:bg-slate-900/20': day.past && !day.disabled
         }"
-        (click)="!day.disabled && !day.past && emitOpen(i)"
       >
-        <div class="flex">
+        <div class="flex p-2">
           <span
             class="text-xs font-medium"
             [ngClass]="{
@@ -94,21 +93,23 @@
         </div>
 
         <div
-          class="mt-2 space-y-2 overflow-y-auto flex-grow"
-          *ngIf="day.items?.length && day.date"
+          class="px-2 pb-2 space-y-2 overflow-y-auto flex-grow min-h-[60px]"
+          *ngIf="day.date"
           cdkDropList
+          [id]="'month-day-' + dateKey(day.date)"
           [cdkDropListData]="day.items"
+          [cdkDropListConnectedTo]="connectedDropLists"
           (cdkDropListDropped)="onDrop($event, dateKey(day.date))"
+          (click)="!day.disabled && !day.past && emitOpen(i)"
         >
           <div
             *ngFor="let it of day.items; let j = index"
-            class="p-2 rounded-md text-xs truncate flex justify-between items-center border"
+            class="p-2 rounded-md text-xs truncate flex justify-between items-center border cursor-move"
             [ngClass]="[getCategoryColor(it.category).bg, getCategoryColor(it.category).text, getCategoryColor(it.category).border, getCategoryColor(it.category).hover]"
             cdkDrag
             [cdkDragDisabled]="day.past || day.disabled"
           >
-            <div class="truncate flex items-center cursor-move" (click)="emitOpenItem(i, j)">
-              <span class="material-icons text-sm mr-2 opacity-40" cdkDragHandle>drag_indicator</span>
+            <div class="truncate flex items-center flex-1" (click)="emitOpenItem(i, j)">
               <div class="truncate">
                 <p class="font-semibold truncate">{{ it.name }}</p>
                 <p class="text-[11px] opacity-70">{{ it.category }}</p>
@@ -117,7 +118,7 @@
             <button
               type="button"
               (click)="emitRemove(i, j, $event)"
-              class="opacity-60 hover:opacity-100 hover:text-red-500 dark:hover:text-red-400 flex-shrink-0"
+              class="opacity-60 hover:opacity-100 hover:text-red-500 dark:hover:text-red-400 flex-shrink-0 ml-2"
               aria-label="Remover"
               title="Remover"
             >

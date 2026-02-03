@@ -83,6 +83,15 @@ export class ScheduleComponent implements OnInit {
 
   selectedMonthlyDateKey?: string;
 
+  dropListIds: string[] = [];
+
+  showDragConfirmModal = false;
+  dragModalRecipe?: RecipeSummary;
+  dragModalDate = '';
+  dragModalDateKey = '';
+
+  draggingRecipeId?: string;
+
   get selectedMonthlyItems(): RecipeSummary[] {
     if (!this.selectedMonthlyDateKey) return [];
     return this.scheduledMap?.[this.selectedMonthlyDateKey] ?? [];
@@ -99,6 +108,18 @@ export class ScheduleComponent implements OnInit {
     this.loadCategories();
     this.loadRecipes();
     this.refreshPeriod();
+  }
+
+  noReturnPredicate() {
+    return false;
+  }
+
+  onRecipeDragStart(recipe: RecipeSummary) {
+    this.draggingRecipeId = recipe.id;
+  }
+
+  onRecipeDragEnd() {
+    this.draggingRecipeId = undefined;
   }
 
   private loadCategories() {
@@ -229,11 +250,13 @@ export class ScheduleComponent implements OnInit {
       this.loadWeekly();
       const end = this.addDays(this.weekStart, 6);
       this.selectedPeriodLabel = `${this.formatLabel(this.weekStart)} \u2192 ${this.formatLabel(end)}`;
+      this.dropListIds = ['recipes-list', ...Array.from({ length: 7 }, (_, i) => `week-day-${i}`)];
     } else {
       this.loadMonthly();
       const y = this.currentDate.getFullYear();
       const m = this.currentDate.toLocaleString('pt-BR', {month: 'long'});
       this.selectedPeriodLabel = `${m.charAt(0).toUpperCase() + m.slice(1)} ${y}`;
+      this.dropListIds = ['recipes-list', ...this.generateMonthlyDropListIds()];
     }
   }
 
@@ -561,9 +584,10 @@ export class ScheduleComponent implements OnInit {
   }
 
   private getCategoryColor(category: string): { bg: string; text: string; border: string; hover: string } {
+    const normalized = (category || '').trim().toLowerCase();
     let hash = 0;
-    for (let i = 0; i < category.length; i++) {
-      hash = (hash * 31 + category.charCodeAt(i)) >>> 0;
+    for (let i = 0; i < normalized.length; i++) {
+      hash = (hash * 31 + normalized.charCodeAt(i)) >>> 0;
     }
     return this.categoryColorPalette[hash % this.categoryColorPalette.length];
   }
@@ -643,5 +667,116 @@ export class ScheduleComponent implements OnInit {
     newItems.splice(event.currentIndex, 0, moved);
 
     this.onReorderMonthly({ dateKey: this.selectedMonthlyDateKey, newOrder: newItems });
+  }
+
+  private generateMonthlyDropListIds(): string[] {
+    const ids: string[] = [];
+    const year = this.currentDate.getFullYear();
+    const month = this.currentDate.getMonth();
+
+    // Gerar IDs para o mês anterior (dias desabilitados)
+    const firstOfMonth = new Date(year, month, 1);
+    const leading = firstOfMonth.getDay();
+    const prevMonthLast = new Date(year, month, 0).getDate();
+
+    for (let i = leading - 1; i >= 0; i--) {
+      const dayNum = prevMonthLast - i;
+      const date = new Date(year, month - 1, dayNum);
+      ids.push(`month-day-${this.formatKey(date)}`);
+    }
+
+    // Dias do mês atual
+    const lastOfMonth = new Date(year, month + 1, 0);
+    const totalDays = lastOfMonth.getDate();
+
+    for (let day = 1; day <= totalDays; day++) {
+      const date = new Date(year, month, day);
+      ids.push(`month-day-${this.formatKey(date)}`);
+    }
+
+    // Dias do próximo mês para completar as células
+    let nextDay = 1;
+    while (ids.length % 7 !== 0) {
+      const date = new Date(year, month + 1, nextDay++);
+      ids.push(`month-day-${this.formatKey(date)}`);
+    }
+
+    return ids;
+  }
+
+  onRecipeDroppedToWeekDay(event: { recipe: RecipeSummary; dayIndex: number }) {
+    const day = this.week[event.dayIndex];
+    if (!day || this.isPastDay(day.date)) return;
+
+    const dateKey = this.formatKey(day.date);
+
+    // Adicionar receita diretamente ao backend
+    this.scheduleService.addRecipe(dateKey, event.recipe.id).subscribe({
+      next: () => {
+        // Recarregar para sincronizar com backend
+        this.loadWeekly();
+      },
+      error: () => {
+        // Remover da UI em caso de erro
+        day.items = day.items.filter(item => item.id !== event.recipe.id);
+        this.openError('Erro ao adicionar receita no cronograma', 'Por favor, tente novamente.');
+      }
+    });
+  }
+
+  onRecipeDroppedToMonthDay(event: { recipe: RecipeSummary; dateKey: string }) {
+    if (this.isPastDate(event.dateKey)) return;
+
+    // Adicionar receita diretamente ao backend
+    this.scheduleService.addRecipe(event.dateKey, event.recipe.id).subscribe({
+      next: () => {
+        // Recarregar para sincronizar com backend
+        this.loadMonthly();
+      },
+      error: () => {
+        // Remover da UI em caso de erro
+        const items = this.scheduledMap[event.dateKey] || [];
+        this.scheduledMap = {
+          ...this.scheduledMap,
+          [event.dateKey]: items.filter(item => item.id !== event.recipe.id)
+        };
+        this.openError('Erro ao adicionar receita no cronograma', 'Por favor, tente novamente.');
+      }
+    });
+  }
+
+  closeDragConfirmModal() {
+    if (this.isAddingRecipe) return;
+    this.showDragConfirmModal = false;
+    this.dragModalRecipe = undefined;
+    this.dragModalDateKey = '';
+    this.dragModalDate = '';
+  }
+
+  confirmAddFromDrag() {
+    if (!this.dragModalRecipe || !this.dragModalDateKey || this.isAddingRecipe) return;
+
+    this.isAddingRecipe = true;
+
+    this.scheduleService.addRecipe(this.dragModalDateKey, this.dragModalRecipe.id).subscribe({
+      next: () => {
+        this.isAddingRecipe = false;
+        this.closeDragConfirmModal();
+        this.refreshPeriod();
+        this.showAddedSuccessModal = true;
+      },
+      error: () => {
+        this.isAddingRecipe = false;
+        this.openError('Erro ao adicionar receita no cronograma', 'Por favor, tente novamente.');
+      }
+    });
+  }
+
+  private isPastDay(date: Date): boolean {
+    const day = new Date(date);
+    day.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return day.getTime() < today.getTime();
   }
 }
