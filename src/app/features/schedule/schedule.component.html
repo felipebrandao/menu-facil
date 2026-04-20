@@ -67,39 +67,40 @@
         <ng-template #recipesList>
           <ng-container *ngFor="let r of filteredRecipes()">
             <div
-              class="group relative bg-card-light dark:bg-slate-800 p-4 rounded-xl border border-border-light dark:border-slate-700 hover:border-primary transition-all shadow-sm cursor-move"
+              class="group relative bg-card-light dark:bg-slate-800 p-4 rounded-xl border border-border-light dark:border-slate-700 border-l-[4px] hover:shadow-md transition-all shadow-sm cursor-move"
+              [ngClass]="getCategoryBarClass(r.category)"
               cdkDrag
               [cdkDragData]="r"
               (cdkDragStarted)="onRecipeDragStart(r)"
               (cdkDragEnded)="onRecipeDragEnd()"
             >
-              <div class="p-2 rounded-md text-xs truncate flex justify-between items-center border cursor-move"
-                   [ngClass]="getCategoryColorClasses(r.category)"
+              <div class="p-2 rounded-md text-xs truncate flex justify-between items-center border border-border-light dark:border-slate-700 bg-card-light dark:bg-slate-800 border-l-[3px] cursor-move"
+                   [ngClass]="getCategoryBarClass(r.category)"
                    *cdkDragPreview>
                 <div class="truncate flex items-center flex-1">
                   <div class="truncate">
-                    <p class="font-semibold truncate">{{ r.name }}</p>
-                    <p class="text-[11px] opacity-70">{{ r.category }}</p>
+                    <p class="font-semibold truncate text-text-light dark:text-white">{{ r.name }}</p>
+                    <p class="text-[11px] font-medium uppercase tracking-wide" [ngClass]="getCategoryLabelClass(r.category)">{{ r.category }}</p>
                   </div>
                 </div>
               </div>
 
-              <div class="p-2 rounded-md text-xs truncate flex justify-between items-center border"
-                   [ngClass]="getCategoryColorClasses(r.category)"
+              <div class="p-2 rounded-md text-xs truncate flex justify-between items-center border border-border-light dark:border-slate-700 bg-card-light dark:bg-slate-800 border-l-[3px]"
+                   [ngClass]="getCategoryBarClass(r.category)"
                    *cdkDragPlaceholder>
                 <div class="truncate flex items-center flex-1">
                   <div class="truncate">
-                    <p class="font-semibold truncate">{{ r.name }}</p>
-                    <p class="text-[11px] opacity-70">{{ r.category }}</p>
+                    <p class="font-semibold truncate text-text-light dark:text-white">{{ r.name }}</p>
+                    <p class="text-[11px] font-medium uppercase tracking-wide" [ngClass]="getCategoryLabelClass(r.category)">{{ r.category }}</p>
                   </div>
                 </div>
               </div>
 
               <div class="flex justify-between items-start">
                 <div class="min-w-0">
-                  <h3 class="font-semibold text-text-light dark:text-white">{{ r.name }}</h3>
-                  <p class="text-xs font-medium px-2 py-0.5 inline-flex mt-2 rounded-full"
-                     [ngClass]="getCategoryBadgeClasses(r.category)">
+                  <h3 class="font-bold text-text-light dark:text-white">{{ r.name }}</h3>
+                  <p class="text-[10px] font-semibold uppercase tracking-wider mt-2"
+                     [ngClass]="getCategoryLabelClass(r.category)">
                     {{ r.category }}
                   </p>
                 </div>
@@ -117,13 +118,14 @@
 
             <div
               *ngIf="draggingRecipeId === r.id"
-              class="group relative bg-card-light dark:bg-slate-800 p-4 rounded-xl border border-border-light dark:border-slate-700 shadow-sm"
+              class="group relative bg-card-light dark:bg-slate-800 p-4 rounded-xl border border-border-light dark:border-slate-700 border-l-[4px] shadow-sm"
+              [ngClass]="getCategoryBarClass(r.category)"
             >
               <div class="flex justify-between items-start">
                 <div class="min-w-0">
-                  <h3 class="font-semibold text-text-light dark:text-white">{{ r.name }}</h3>
-                  <p class="text-xs font-medium px-2 py-0.5 inline-flex mt-2 rounded-full"
-                     [ngClass]="getCategoryBadgeClasses(r.category)">
+                  <h3 class="font-bold text-text-light dark:text-white">{{ r.name }}</h3>
+                  <p class="text-[10px] font-semibold uppercase tracking-wider mt-2"
+                     [ngClass]="getCategoryLabelClass(r.category)">
                     {{ r.category }}
                   </p>
                 </div>
@@ -267,15 +269,15 @@
             >
               <div
                 *ngFor="let it of selectedMonthlyItems; let j = index"
-                class="p-2 rounded-md text-xs truncate flex justify-between items-center border cursor-move"
-                [ngClass]="getCategoryColorClasses(it.category)"
+                class="p-2 rounded-md text-xs truncate flex justify-between items-start border border-border-light dark:border-slate-700 bg-gray-50 dark:bg-slate-800/40 border-l-[3px] cursor-move"
+                [ngClass]="getCategoryBarClass(it.category)"
                 cdkDrag
                 [cdkDragDisabled]="isPastDate(selectedMonthlyDateKey)"
               >
                 <div class="truncate flex items-center flex-1" (click)="onOpenScheduled({ dateKey: selectedMonthlyDateKey!, itemIndex: j, recipe: it })">
                   <div class="truncate">
-                    <p class="font-semibold truncate">{{ it.name }}</p>
-                    <p class="text-[11px] opacity-70">{{ it.category }}</p>
+                    <p class="font-semibold truncate text-text-light dark:text-white">{{ it.name }}</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-wide" [ngClass]="getCategoryLabelClass(it.category)">{{ it.category }}</p>
                   </div>
                 </div>
                 <button

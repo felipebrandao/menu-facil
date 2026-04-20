@@ -37,15 +37,15 @@
       >
         <div
           *ngFor="let it of day.items; let j = index"
-          class="p-2 rounded-md text-xs truncate flex justify-between items-center border cursor-move"
-          [ngClass]="[getCategoryColor(it.category).bg, getCategoryColor(it.category).text, getCategoryColor(it.category).border, getCategoryColor(it.category).hover]"
+          class="p-2 rounded-md text-xs truncate flex justify-between items-start border border-border-light dark:border-slate-700 bg-gray-50 dark:bg-slate-800/40 border-l-[3px] cursor-move"
+          [ngClass]="getCategoryBarClass(it.category)"
           cdkDrag
           [cdkDragDisabled]="isPastDay(day.date)"
         >
           <div class="truncate flex items-center flex-1" (click)="emitOpenItem(i, j)">
             <div class="truncate">
-              <p class="font-semibold truncate">{{ it.name }}</p>
-              <p class="text-[11px] opacity-70">{{ it.category }}</p>
+              <p class="font-semibold truncate text-text-light dark:text-white">{{ it.name }}</p>
+              <p class="text-[10px] font-semibold uppercase tracking-wide" [ngClass]="getCategoryLabelClass(it.category)">{{ it.category }}</p>
             </div>
           </div>
           <button
