@@ -44,6 +44,7 @@ export class RecipeComponent implements OnInit {
   currentMainImagePublicId: string | null = null;
   currentGalleryImages: string[] = [];
   currentGalleryPublicIds: string[] = [];
+  pendingRemovedPublicIds: string[] = [];
   showSuccessModal = false;
   lastRecipeId: string | null = null;
   ingredientError: string = '';
@@ -110,6 +111,7 @@ export class RecipeComponent implements OnInit {
           this.currentMainImagePublicId = recipe.mainImagePublicId ?? null;
           this.currentGalleryImages = recipe.gallery ?? [];
           this.currentGalleryPublicIds = recipe.galleryPublicIds ?? [];
+          this.pendingRemovedPublicIds = [];
 
           const instArray = this.form.get('instructions') as FormArray;
           instArray.clear();
@@ -222,10 +224,12 @@ export class RecipeComponent implements OnInit {
 
         finalizeSuccess(this.lastRecipeId);
         this.deletePublicIdsAfterUpdate(publicIdsToDeleteAfterSave);
+        this.pendingRemovedPublicIds = [];
         return;
       }
 
       const created = await firstValueFrom(this.recipeService.createRecipe(recipePayload));
+      this.pendingRemovedPublicIds = [];
       finalizeSuccess(created.id);
     } catch (error) {
       handleError(error);
@@ -233,7 +237,7 @@ export class RecipeComponent implements OnInit {
   }
 
   private collectPublicIdsToDeleteAfterSave(newMainPublicId: string | null): string[] {
-    const ids: string[] = [];
+    const ids: string[] = [...this.pendingRemovedPublicIds];
 
     // Only remove old main image after successful update when it was replaced.
     if (
@@ -244,7 +248,7 @@ export class RecipeComponent implements OnInit {
       ids.push(this.currentMainImagePublicId);
     }
 
-    return ids;
+    return Array.from(new Set(ids));
   }
 
   private deletePublicIdsAfterUpdate(publicIds: string[]): void {
@@ -333,6 +337,25 @@ export class RecipeComponent implements OnInit {
 
   onCancel() {
     this.showErrorModal = false;
+  }
+
+  onRemoveExistingMainImage() {
+    if (this.currentMainImagePublicId) {
+      this.pendingRemovedPublicIds.push(this.currentMainImagePublicId);
+    }
+
+    this.currentMainImage = null;
+    this.currentMainImagePublicId = null;
+  }
+
+  onRemoveExistingGalleryImage(index: number) {
+    const publicId = this.currentGalleryPublicIds[index];
+    if (publicId) {
+      this.pendingRemovedPublicIds.push(publicId);
+    }
+
+    this.currentGalleryImages = this.currentGalleryImages.filter((_, i) => i !== index);
+    this.currentGalleryPublicIds = this.currentGalleryPublicIds.filter((_, i) => i !== index);
   }
 
   get instructionsArray(): FormArray {

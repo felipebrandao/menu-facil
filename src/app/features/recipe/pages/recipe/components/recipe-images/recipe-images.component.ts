@@ -18,9 +18,17 @@ export class RecipeImagesComponent {
 
   @Input() mainImage?: File;
   @Output() mainImageChange = new EventEmitter<File | undefined>();
+  @Input() mainImageUrl: string | null = null;
+  @Output() removeExistingMainImage = new EventEmitter<void>();
 
   @Input() galleryImages: File[] = [];
   @Output() galleryImagesChange = new EventEmitter<File[]>();
+  @Input() galleryImageUrls: string[] = [];
+  @Output() removeExistingGalleryImage = new EventEmitter<number>();
+
+  get hasMainImage(): boolean {
+    return !!this.mainImage || !!this.mainImageUrl;
+  }
 
   onMainImageChange(event: any) {
     const file = event.target.files && event.target.files[0];
@@ -30,8 +38,16 @@ export class RecipeImagesComponent {
   }
 
   removeMainImage() {
-    this.mainImage = undefined;
-    this.mainImageChange.emit(undefined);
+    if (this.mainImage) {
+      this.mainImage = undefined;
+      this.mainImageChange.emit(undefined);
+      return;
+    }
+
+    if (this.mainImageUrl) {
+      this.mainImageUrl = null;
+      this.removeExistingMainImage.emit();
+    }
   }
 
   onGalleryImagesChange(event: any) {
@@ -46,5 +62,9 @@ export class RecipeImagesComponent {
   removeGalleryImage(index: number) {
     this.galleryImages.splice(index, 1);
     this.galleryImagesChange.emit(this.galleryImages);
+  }
+
+  onRemoveExistingGalleryImage(index: number) {
+    this.removeExistingGalleryImage.emit(index);
   }
 }

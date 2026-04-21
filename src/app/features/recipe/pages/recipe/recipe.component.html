@@ -132,7 +132,11 @@
         </div>
         <app-recipe-images
           [(mainImage)]="mainImage"
-          [(galleryImages)]="galleryImages">
+          [(galleryImages)]="galleryImages"
+          [mainImageUrl]="currentMainImage"
+          [galleryImageUrls]="currentGalleryImages"
+          (removeExistingMainImage)="onRemoveExistingMainImage()"
+          (removeExistingGalleryImage)="onRemoveExistingGalleryImage($event)">
         </app-recipe-images>
         <button
           type="submit"

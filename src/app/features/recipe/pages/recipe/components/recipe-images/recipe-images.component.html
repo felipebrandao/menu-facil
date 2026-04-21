@@ -4,7 +4,7 @@
     <label
       class="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-lg cursor-pointer bg-white dark:bg-gray-900/50 hover:bg-gray-50 dark:hover:bg-gray-800/50"
       for="dropzone-file-main">
-      <ng-container *ngIf="!mainImage; else preview">
+      <ng-container *ngIf="!hasMainImage; else preview">
         <div class="flex flex-col items-center justify-center pt-5 pb-6">
           <span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-4xl">cloud_upload</span>
           <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Clique para carregar</span> ou arraste e solte</p>
@@ -13,7 +13,7 @@
       </ng-container>
       <ng-template #preview>
         <div class="relative w-full h-48">
-          <img [src]="mainImage | filePreview" alt="Imagem principal" class="w-full h-48 object-cover rounded-lg"/>
+          <img [src]="mainImage ? (mainImage | filePreview) : mainImageUrl" alt="Imagem principal" class="w-full h-48 object-cover rounded-lg"/>
           <button
             type="button"
             (click)="removeMainImage()"
@@ -30,6 +30,16 @@
   <div>
     <h3 class="text-xl font-bold mb-4">Galeria de Imagens</h3>
     <div class="grid grid-cols-3 gap-4">
+      <div *ngFor="let imgUrl of galleryImageUrls; let i = index" class="relative group">
+        <img [src]="imgUrl" alt="Gallery image" class="aspect-square w-full object-cover rounded-lg"/>
+        <button
+          type="button"
+          (click)="onRemoveExistingGalleryImage(i)"
+          class="absolute top-1 right-1 bg-black/50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+          <span class="material-symbols-outlined text-sm">close</span>
+        </button>
+      </div>
+
       <div *ngFor="let img of galleryImages; let i = index" class="relative group">
         <img [src]="img | filePreview" alt="Gallery image" class="aspect-square w-full object-cover rounded-lg"/>
         <button
