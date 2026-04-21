@@ -7,8 +7,8 @@
 ></app-success-modal>
 <app-error-modal
   *ngIf="showErrorModal"
-  [message]="'Erro ao salvar receita!'"
-  [details]="'Por favor, tente novamente.'"
+  [message]="errorModalMessage"
+  [details]="errorModalDetails"
   (retry)="onRetry()"
   (cancel)="onCancel()"
 ></app-error-modal>

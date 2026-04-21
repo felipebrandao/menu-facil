@@ -15,6 +15,7 @@ import {SkeletonComponent} from '../../../../shared/components/skeleton/skeleton
 import {NewIngredientModalComponent} from '../../../../shared/components/new-ingredient-modal/new-ingredient-modal.component';
 import {UploadService} from '../../../../shared/services/upload.service';
 import {firstValueFrom} from 'rxjs';
+import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
   selector: 'app-recipe',
@@ -47,6 +48,8 @@ export class RecipeComponent implements OnInit {
   lastRecipeId: string | null = null;
   ingredientError: string = '';
   showErrorModal = false;
+  errorModalMessage = 'Erro ao salvar receita!';
+  errorModalDetails = 'Por favor, tente novamente.';
   showCategoryModal = false;
   loading = false;
   showIngredientModal = false;
@@ -171,7 +174,10 @@ export class RecipeComponent implements OnInit {
       this.galleryImages = [];
     };
 
-    const handleError = () => {
+    const handleError = (error?: unknown) => {
+      const mapped = this.mapUploadErrorToModal(error);
+      this.errorModalMessage = mapped.message;
+      this.errorModalDetails = mapped.details;
       this.showErrorModal = true;
       this.isSaving = false;
     };
@@ -210,9 +216,63 @@ export class RecipeComponent implements OnInit {
 
       const created = await firstValueFrom(this.recipeService.createRecipe(recipePayload));
       finalizeSuccess(created.id);
-    } catch {
-      handleError();
+    } catch (error) {
+      handleError(error);
     }
+  }
+
+  private mapUploadErrorToModal(error: unknown): { message: string; details: string } {
+    const code = this.extractApiErrorCode(error);
+
+    switch (code) {
+      case 'INVALID_IMAGE':
+        return {
+          message: 'Imagem invalida.',
+          details: 'Verifique se o arquivo foi selecionado corretamente e use formatos suportados (JPG, PNG, WEBP).'
+        };
+      case 'UPLOAD_SIZE_EXCEEDED':
+        return {
+          message: 'Imagem muito grande.',
+          details: 'O arquivo excede o tamanho permitido. Escolha uma imagem menor e tente novamente.'
+        };
+      case 'IMAGE_UPLOAD_ERROR':
+        return {
+          message: 'Falha no envio da imagem.',
+          details: 'Nao foi possivel enviar a imagem agora. Tente novamente em instantes.'
+        };
+      case 'IMAGE_DELETE_ERROR':
+        return {
+          message: 'Falha ao remover imagem antiga.',
+          details: 'A receita pode ter sido salva, mas a limpeza da imagem anterior falhou. Tente novamente mais tarde.'
+        };
+      default:
+        return {
+          message: 'Erro ao salvar receita!',
+          details: 'Por favor, tente novamente.'
+        };
+    }
+  }
+
+  private extractApiErrorCode(error: unknown): string | null {
+    if (!(error instanceof HttpErrorResponse)) {
+      return null;
+    }
+
+    if (typeof error.error === 'string') {
+      try {
+        const parsed = JSON.parse(error.error) as { code?: string };
+        return parsed?.code ?? null;
+      } catch {
+        return null;
+      }
+    }
+
+    if (error.error && typeof error.error === 'object' && 'code' in error.error) {
+      const code = (error.error as { code?: unknown }).code;
+      return typeof code === 'string' ? code : null;
+    }
+
+    return null;
   }
 
   onViewRecipe() {
