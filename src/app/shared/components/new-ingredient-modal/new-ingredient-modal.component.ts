@@ -73,6 +73,8 @@ export class NewIngredientModalComponent implements OnInit {
   errorDetails = '';
 
   private _savedIngredient?: any;
+  editingConversionIndex: number | null = null;
+  private editingInitialFactor: number | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -112,7 +114,7 @@ export class NewIngredientModalComponent implements OnInit {
     if (existingIndex === -1) {
       this.conversions.insert(0, this.fb.group({
         toUnit: [defaultUnitId, Validators.required],
-        factor: [1, Validators.required],
+        factor: [1, [Validators.required, Validators.min(0.00001)]],
         isDefault: [true] // Flag para identificar
       }));
     } else {
@@ -214,7 +216,7 @@ export class NewIngredientModalComponent implements OnInit {
           this.conversions.push(
             this.fb.group({
               toUnit: [toUnit, Validators.required],
-              factor: [factor, Validators.required],
+                factor: [factor, [Validators.required, Validators.min(0.00001)]],
               isDefault: [false]
             })
           );
@@ -229,7 +231,7 @@ export class NewIngredientModalComponent implements OnInit {
     this.conversions.push(
       this.fb.group({
         toUnit: [this.newConversion.value.toUnit, Validators.required],
-        factor: [this.newConversion.value.factor, Validators.required],
+        factor: [this.newConversion.value.factor, [Validators.required, Validators.min(0.00001)]],
       })
     );
 
@@ -242,6 +244,13 @@ export class NewIngredientModalComponent implements OnInit {
       return;
     }
     this.conversions.removeAt(index);
+
+    if (this.editingConversionIndex === index) {
+      this.editingConversionIndex = null;
+      this.editingInitialFactor = null;
+    } else if (this.editingConversionIndex !== null && this.editingConversionIndex > index) {
+      this.editingConversionIndex -= 1;
+    }
   }
 
   isDefaultConversion(index: number): boolean {
@@ -251,6 +260,48 @@ export class NewIngredientModalComponent implements OnInit {
   unitLabel(unitId: string) {
     const u = this.units.find((x) => x.id === unitId);
     return u ? u.abbreviation : '?';
+  }
+
+  factorControlAt(index: number): FormControl {
+    return this.conversions.at(index).get('factor') as FormControl;
+  }
+
+  isEditingConversion(index: number): boolean {
+    return this.editingConversionIndex === index;
+  }
+
+  startEditConversion(index: number) {
+    if (this.isDefaultConversion(index)) return;
+
+    this.cancelEditConversion();
+
+    const factor = Number(this.factorControlAt(index).value ?? 0);
+    this.editingConversionIndex = index;
+    this.editingInitialFactor = factor;
+  }
+
+  saveEditConversion(index: number) {
+    if (!this.isEditingConversion(index)) return;
+
+    const factorControl = this.factorControlAt(index);
+    factorControl.markAsTouched();
+    factorControl.updateValueAndValidity();
+
+    if (factorControl.invalid) return;
+
+    this.editingConversionIndex = null;
+    this.editingInitialFactor = null;
+  }
+
+  cancelEditConversion() {
+    if (this.editingConversionIndex === null) return;
+
+    if (this.editingInitialFactor !== null) {
+      this.factorControlAt(this.editingConversionIndex).setValue(this.editingInitialFactor);
+    }
+
+    this.editingConversionIndex = null;
+    this.editingInitialFactor = null;
   }
 
   save() {
