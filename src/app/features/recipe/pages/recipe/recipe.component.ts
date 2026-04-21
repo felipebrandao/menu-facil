@@ -13,6 +13,8 @@ import {RecipeCategory} from '../../../../shared/models/recipe.model';
 import {RecipeCategoryService} from '../../../../shared/services/recipe-category.service';
 import {SkeletonComponent} from '../../../../shared/components/skeleton/skeleton.component';
 import {NewIngredientModalComponent} from '../../../../shared/components/new-ingredient-modal/new-ingredient-modal.component';
+import {UploadService} from '../../../../shared/services/upload.service';
+import {firstValueFrom} from 'rxjs';
 
 @Component({
   selector: 'app-recipe',
@@ -37,6 +39,10 @@ export class RecipeComponent implements OnInit {
   categories: RecipeCategory[] = [];
   mainImage?: File;
   galleryImages: File[] = [];
+  currentMainImage: string | null = null;
+  currentMainImagePublicId: string | null = null;
+  currentGalleryImages: string[] = [];
+  currentGalleryPublicIds: string[] = [];
   showSuccessModal = false;
   lastRecipeId: string | null = null;
   ingredientError: string = '';
@@ -54,6 +60,7 @@ export class RecipeComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private recipeService: RecipeService,
+    private uploadService: UploadService,
     private router: Router,
     private route: ActivatedRoute,
     private recipeCategoryService: RecipeCategoryService
@@ -95,6 +102,11 @@ export class RecipeComponent implements OnInit {
             totalTime: recipe.totalTime,
             highlighted: recipe.highlighted || false
           });
+
+          this.currentMainImage = recipe.mainImage ?? null;
+          this.currentMainImagePublicId = recipe.mainImagePublicId ?? null;
+          this.currentGalleryImages = recipe.gallery ?? [];
+          this.currentGalleryPublicIds = recipe.galleryPublicIds ?? [];
 
           const instArray = this.form.get('instructions') as FormArray;
           instArray.clear();
@@ -151,25 +163,12 @@ export class RecipeComponent implements OnInit {
       .map((s: string) => (s || '').trim())
       .filter((s: string) => s.length > 0);
 
-    const recipePayload = {
-      name: this.form.value.recipeName,
-      categoryId: this.form.value.category,
-      ingredients: this.form.value.ingredients.map((i: any) => ({
-        ingredientId: i.id,
-        unitUsedId: i.unit,
-        quantity: i.quantity
-      })),
-      instructions: instructions,
-      mainImage: null,
-      gallery: [],
-      totalTime: this.form.value.totalTime,
-      highlighted: this.form.value.highlighted
-    };
-
     const finalizeSuccess = (recipeId: string) => {
       this.lastRecipeId = recipeId;
       this.showSuccessModal = true;
       this.isSaving = false;
+      this.mainImage = undefined;
+      this.galleryImages = [];
     };
 
     const handleError = () => {
@@ -177,52 +176,43 @@ export class RecipeComponent implements OnInit {
       this.isSaving = false;
     };
 
-    if (this.lastRecipeId) {
-      this.recipeService.updateRecipe(this.lastRecipeId, recipePayload).subscribe({
-        next: () => {
-          this.uploadImages(this.lastRecipeId!, finalizeSuccess, handleError);
-        },
-        error: handleError
-      });
-      return;
+    try {
+      const uploadedMainImage = this.mainImage
+        ? await firstValueFrom(this.uploadService.uploadImage(this.mainImage, 'recipe-main-image'))
+        : null;
+
+      const uploadedGalleryImages = this.galleryImages.length > 0
+        ? await firstValueFrom(this.uploadService.uploadImages(this.galleryImages, 'recipe-gallery'))
+        : [];
+
+      const recipePayload = {
+        name: this.form.value.recipeName,
+        categoryId: this.form.value.category,
+        ingredients: this.form.value.ingredients.map((i: any) => ({
+          ingredientId: i.id,
+          unitUsedId: i.unit,
+          quantity: i.quantity
+        })),
+        instructions: instructions,
+        mainImage: uploadedMainImage?.secureUrl ?? this.currentMainImage,
+        mainImagePublicId: uploadedMainImage?.publicId ?? this.currentMainImagePublicId,
+        gallery: [...this.currentGalleryImages, ...uploadedGalleryImages.map(image => image.secureUrl)],
+        galleryPublicIds: [...this.currentGalleryPublicIds, ...uploadedGalleryImages.map(image => image.publicId)],
+        totalTime: this.form.value.totalTime,
+        highlighted: this.form.value.highlighted
+      };
+
+      if (this.lastRecipeId) {
+        await firstValueFrom(this.recipeService.updateRecipe(this.lastRecipeId, recipePayload));
+        finalizeSuccess(this.lastRecipeId);
+        return;
+      }
+
+      const created = await firstValueFrom(this.recipeService.createRecipe(recipePayload));
+      finalizeSuccess(created.id);
+    } catch {
+      handleError();
     }
-
-    this.recipeService.createRecipe(recipePayload).subscribe({
-      next: (res) => {
-        const id = res.id;
-        this.uploadImages(id, finalizeSuccess, handleError);
-      },
-      error: handleError
-    });
-  }
-
-  uploadImages(
-    recipeId: string,
-    onSuccess: (id: string) => void,
-    onError: () => void
-  ) {
-    if (!this.mainImage && (!this.galleryImages || this.galleryImages.length === 0)) {
-      onSuccess(recipeId);
-      return;
-    }
-
-    const uploads: Promise<any>[] = [];
-
-    if (this.mainImage) {
-      uploads.push(
-        this.recipeService.uploadMainImage(recipeId, this.mainImage).toPromise()
-      );
-    }
-
-    if (this.galleryImages && this.galleryImages.length > 0) {
-      uploads.push(
-        this.recipeService.uploadGalleryImages(recipeId, this.galleryImages).toPromise()
-      );
-    }
-
-    Promise.all(uploads)
-      .then(() => onSuccess(recipeId))
-      .catch(() => onError());
   }
 
   onViewRecipe() {
