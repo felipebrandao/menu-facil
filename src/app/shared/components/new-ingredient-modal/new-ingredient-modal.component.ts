@@ -16,6 +16,7 @@ import {IngredientFormData} from '../../mappers/ingredient.mapper';
 import {SkeletonComponent} from '../skeleton/skeleton.component';
 import { SuccessModalComponent } from '../success-modal/success-modal.component';
 import { ErrorModalComponent } from '../error-modal/error-modal.component';
+import { ConfirmationModalComponent } from '../confirmation-modal/confirmation-modal.component';
 import { IngredientService } from '../../services/ingredient.service';
 import { IngredientMapper } from '../../mappers/ingredient.mapper';
 
@@ -29,7 +30,8 @@ import { IngredientMapper } from '../../mappers/ingredient.mapper';
     FormsModule,
     SkeletonComponent,
     SuccessModalComponent,
-    ErrorModalComponent
+    ErrorModalComponent,
+    ConfirmationModalComponent
   ],
   templateUrl: './new-ingredient-modal.component.html',
 })
@@ -44,7 +46,8 @@ export class NewIngredientModalComponent implements OnInit {
         this.patchForm();
       } else {
         this.form.reset();
-        this.conversions.clear?.() ?? this.clearConversionsManually();
+        this.clearConversions();
+        this.currentDefaultUnitId = null;
       }
     }
   }
@@ -75,6 +78,10 @@ export class NewIngredientModalComponent implements OnInit {
   private _savedIngredient?: any;
   editingConversionIndex: number | null = null;
   private editingInitialFactor: number | null = null;
+  showDefaultUnitChangeModal = false;
+  pendingDefaultUnitId: string | null = null;
+  private currentDefaultUnitId: string | null = null;
+  private suppressDefaultUnitChange = false;
 
   constructor(
     private fb: FormBuilder,
@@ -99,30 +106,97 @@ export class NewIngredientModalComponent implements OnInit {
 
     if (this._formData) this.patchForm();
 
+    this.currentDefaultUnitId = this.form.get('defaultUnit')?.value ?? null;
+
     this.form.get('defaultUnit')?.valueChanges.subscribe(unitId => {
-      if (unitId) {
-        this.ensureDefaultUnitConversion(unitId);
-      }
+      this.handleDefaultUnitChange(unitId);
     });
   }
 
-  private ensureDefaultUnitConversion(defaultUnitId: string) {
-    const existingIndex = this.conversions.controls.findIndex(
-      c => c.get('toUnit')?.value === defaultUnitId
-    );
+  private buildConversionGroup(toUnit: string, factor: number, isDefault = false): FormGroup {
+    return this.fb.group({
+      toUnit: [toUnit, Validators.required],
+      factor: [factor, [Validators.required, Validators.min(0.00001)]],
+      isDefault: [isDefault]
+    });
+  }
 
-    if (existingIndex === -1) {
-      this.conversions.insert(0, this.fb.group({
-        toUnit: [defaultUnitId, Validators.required],
-        factor: [1, [Validators.required, Validators.min(0.00001)]],
-        isDefault: [true] // Flag para identificar
-      }));
-    } else {
-      this.conversions.at(existingIndex).patchValue({
-        factor: 1,
-        isDefault: true
-      });
+  private clearConversions() {
+    if (this.conversions.clear) {
+      this.conversions.clear();
+      return;
     }
+
+    this.clearConversionsManually();
+  }
+
+  private ensureDefaultUnitConversion(defaultUnitId: string) {
+    const remainingConversions: FormGroup[] = [];
+
+    this.conversions.controls.forEach((control) => {
+      const toUnit = control.get('toUnit')?.value;
+      if (!toUnit || toUnit === defaultUnitId) {
+        return;
+      }
+
+      remainingConversions.push(
+        this.buildConversionGroup(
+          toUnit,
+          Number(control.get('factor')?.value ?? 0),
+          false
+        )
+      );
+    });
+
+    this.clearConversions();
+    this.conversions.push(this.buildConversionGroup(defaultUnitId, 1, true));
+    remainingConversions.forEach((group) => this.conversions.push(group));
+  }
+
+  private hasAnyConversions(): boolean {
+    return this.conversions.length > 0;
+  }
+
+  private handleDefaultUnitChange(unitId: string | null) {
+    if (!unitId || this.suppressDefaultUnitChange || unitId === this.currentDefaultUnitId) {
+      return;
+    }
+
+    if (this.hasAnyConversions()) {
+      this.pendingDefaultUnitId = unitId;
+      this.showDefaultUnitChangeModal = true;
+
+      this.suppressDefaultUnitChange = true;
+      this.form.get('defaultUnit')?.setValue(this.currentDefaultUnitId, {emitEvent: false});
+      this.suppressDefaultUnitChange = false;
+      return;
+    }
+
+    this.applyDefaultUnitChange(unitId);
+  }
+
+  private applyDefaultUnitChange(unitId: string) {
+    this.suppressDefaultUnitChange = true;
+    this.form.get('defaultUnit')?.setValue(unitId, {emitEvent: false});
+    this.suppressDefaultUnitChange = false;
+
+    this.ensureDefaultUnitConversion(unitId);
+    this.currentDefaultUnitId = unitId;
+    this.cancelEditConversion();
+  }
+
+  confirmDefaultUnitChange() {
+    if (this.pendingDefaultUnitId) {
+      this.applyDefaultUnitChange(this.pendingDefaultUnitId);
+    }
+
+    this.pendingDefaultUnitId = null;
+    this.showDefaultUnitChangeModal = false;
+  }
+
+  cancelDefaultUnitChange() {
+    this.pendingDefaultUnitId = null;
+    this.showDefaultUnitChangeModal = false;
   }
 
   createForm() {
@@ -166,21 +240,29 @@ export class NewIngredientModalComponent implements OnInit {
   loadCategories() {
     this.loadingCategories = true;
     this.categoriesIngredientService!.getAll().subscribe({
-      next: (res) => (this.categories = res),
-      complete: () => (this.loadingCategories = false),
+      next: (res) => {
+        this.categories = res;
+      },
+      complete: () => {
+        this.loadingCategories = false;
+      },
     });
   }
 
   loadUnits() {
     this.loadingUnits = true;
     this.unitService!.getAll().subscribe({
-      next: (res) => (this.units = res),
-      complete: () => (this.loadingUnits = false),
+      next: (res) => {
+        this.units = res;
+      },
+      complete: () => {
+        this.loadingUnits = false;
+      },
     });
   }
 
   patchForm() {
-    this.conversions.clear?.() ?? this.clearConversionsManually();
+    this.clearConversions();
 
     const fd: any = this._formData ?? {};
 
@@ -198,13 +280,7 @@ export class NewIngredientModalComponent implements OnInit {
     });
 
     if (unitVal) {
-      this.conversions.push(
-        this.fb.group({
-          toUnit: [unitVal, Validators.required],
-          factor: [1, Validators.required],
-          isDefault: [true]
-        })
-      );
+      this.conversions.push(this.buildConversionGroup(unitVal, 1, true));
     }
 
     if (fd.conversions?.length) {
@@ -213,26 +289,27 @@ export class NewIngredientModalComponent implements OnInit {
         const factor = c.factor ?? 0;
 
         if (toUnit !== unitVal) {
-          this.conversions.push(
-            this.fb.group({
-              toUnit: [toUnit, Validators.required],
-                factor: [factor, [Validators.required, Validators.min(0.00001)]],
-              isDefault: [false]
-            })
-          );
+          this.conversions.push(this.buildConversionGroup(toUnit, factor, false));
         }
       });
     }
+
+    if (unitVal) {
+      this.ensureDefaultUnitConversion(unitVal);
+    }
+
+    this.currentDefaultUnitId = unitVal || null;
   }
 
   confirmAddConversion() {
     if (this.newConversion.invalid) return;
 
     this.conversions.push(
-      this.fb.group({
-        toUnit: [this.newConversion.value.toUnit, Validators.required],
-        factor: [this.newConversion.value.factor, [Validators.required, Validators.min(0.00001)]],
-      })
+      this.buildConversionGroup(
+        this.newConversion.value.toUnit,
+        Number(this.newConversion.value.factor),
+        false
+      )
     );
 
     this.newConversion.reset();
@@ -306,6 +383,12 @@ export class NewIngredientModalComponent implements OnInit {
 
   save() {
     if (this.form.invalid || !this.ingredientService) return;
+
+    const defaultUnit = this.form.get('defaultUnit')?.value;
+    if (defaultUnit) {
+      this.ensureDefaultUnitConversion(defaultUnit);
+    }
+
     this.isSaving = true;
 
     const formData: IngredientFormData = {

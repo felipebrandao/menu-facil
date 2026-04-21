@@ -274,3 +274,14 @@
   (cancel)="handleErrorCancel()">
 </app-error-modal>
 
+<!-- Confirmacao ao trocar unidade padrao -->
+<app-confirmation-modal
+  *ngIf="showDefaultUnitChangeModal"
+  title="Alterar unidade padrão?"
+  message="As conversões já cadastradas serão mantidas, mas podem ficar inconsistentes com a nova unidade padrão. Revise os fatores antes de salvar."
+  confirmText="Continuar"
+  cancelText="Cancelar"
+  (confirm)="confirmDefaultUnitChange()"
+  (cancel)="cancelDefaultUnitChange()">
+</app-confirmation-modal>
+
