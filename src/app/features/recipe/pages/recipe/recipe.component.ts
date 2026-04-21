@@ -208,9 +208,20 @@ export class RecipeComponent implements OnInit {
         highlighted: this.form.value.highlighted
       };
 
+      const publicIdsToDeleteAfterSave = this.collectPublicIdsToDeleteAfterSave(
+        uploadedMainImage?.publicId ?? null
+      );
+
       if (this.lastRecipeId) {
         await firstValueFrom(this.recipeService.updateRecipe(this.lastRecipeId, recipePayload));
+
+        this.currentMainImage = recipePayload.mainImage ?? null;
+        this.currentMainImagePublicId = recipePayload.mainImagePublicId ?? null;
+        this.currentGalleryImages = recipePayload.gallery ?? [];
+        this.currentGalleryPublicIds = recipePayload.galleryPublicIds ?? [];
+
         finalizeSuccess(this.lastRecipeId);
+        this.deletePublicIdsAfterUpdate(publicIdsToDeleteAfterSave);
         return;
       }
 
@@ -219,6 +230,36 @@ export class RecipeComponent implements OnInit {
     } catch (error) {
       handleError(error);
     }
+  }
+
+  private collectPublicIdsToDeleteAfterSave(newMainPublicId: string | null): string[] {
+    const ids: string[] = [];
+
+    // Only remove old main image after successful update when it was replaced.
+    if (
+      newMainPublicId &&
+      this.currentMainImagePublicId &&
+      this.currentMainImagePublicId !== newMainPublicId
+    ) {
+      ids.push(this.currentMainImagePublicId);
+    }
+
+    return ids;
+  }
+
+  private deletePublicIdsAfterUpdate(publicIds: string[]): void {
+    if (!publicIds.length) {
+      return;
+    }
+
+    Promise.allSettled(publicIds.map(id => firstValueFrom(this.uploadService.deleteImage(id))))
+      .then(results => {
+        const hasFailure = results.some(result => result.status === 'rejected');
+        if (hasFailure) {
+          // Save already succeeded, cleanup failure is non-blocking.
+          console.warn('Falha ao remover imagem antiga no provedor.');
+        }
+      });
   }
 
   private mapUploadErrorToModal(error: unknown): { message: string; details: string } {
