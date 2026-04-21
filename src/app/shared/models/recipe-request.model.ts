@@ -4,7 +4,9 @@ export interface RecipeCreateRequest {
   ingredients: RecipeIngredientRequest[];
   instructions: string[];
   mainImage?: string | null;
+  mainImagePublicId?: string | null;
   gallery?: string[] | null;
+  galleryPublicIds?: string[] | null;
   totalTime?: number;
   highlighted?: boolean;
 }

@@ -10,7 +10,9 @@ export interface Recipe {
   ingredients: RecipeIngredientResponse[];
   instructions: string[];
   mainImage?: string;
+  mainImagePublicId?: string;
   gallery?: string[];
+  galleryPublicIds?: string[];
   totalTime?: number;
   highlighted?: boolean;
   createdAt?: string;
